@@ -68,8 +68,8 @@ if(process.argv[2]==='prepare'){
     const probe=path.join(local,'d3d11-probe.exe');
     await runProcess('x86_64-w64-mingw32-gcc',[path.join(root,'scripts/d3d11-probe.c'),'-O2','-o',probe,'-luser32','-ldxguid'],{timeout:60000});
     report.frameProbe=await runProcess(path.join(runtime,'bin/wine'),[probe],{env:{...env,WINEDLLOVERRIDES:'dxgi,d3d11=b',WINEDEBUG:'err+all',COOP_DXMT_DIAGNOSTICS:'1'},timeout:90000,maxOutput:8000,log:message=>process.stdout.write(message)});
-    if(!report.frameProbe.includes('D3D11_PROBE frame_readback_and_present_passed'))throw new Error('Gercek Direct3D goruntu denetimi gecmedi.');
+    if(!report.frameProbe.includes('D3D11_PROBE resize_destroy_reopen_passed'))throw new Error('Gercek Direct3D goruntu ve pencere yasam dongusu denetimi gecmedi.');
     report.basicD3D11FrameVerified=true;
   }catch(error){report.error=error.message;throw error;}
-  finally{console.log('WINE_DRIVER_REPORT='+JSON.stringify(report));await runProcess(path.join(runtime,'bin/wineserver'),['-k'],{env,timeout:15000}).catch(()=>{});}
+  finally{await fs.writeFile(path.join(local,'wine-driver-report.json'),JSON.stringify(report,null,2));console.log('WINE_DRIVER_REPORT='+JSON.stringify(report));await runProcess(path.join(runtime,'bin/wineserver'),['-k'],{env,timeout:15000}).catch(()=>{});}
 }else throw new Error('prepare veya verify gerekiyor.');

@@ -1,6 +1,11 @@
 name: Acik kaynak Wine grafik surucusu denemesi
 on:
   workflow_dispatch:
+    inputs:
+      publish_driver:
+        description: Basarili surucuyu ve tam kaynagini taslak surume kaydet
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -11,6 +16,8 @@ jobs:
     if: github.event.repository.private == false
     runs-on: macos-15
     timeout-minutes: 25
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -37,3 +44,11 @@ jobs:
           fi
       - name: Yeni surucu ve Windows komutunu sina
         run: node scripts/build-wine-driver.mjs verify
+      - name: Yalniz basarili adayi kaynaklariyla taslak surume kaydet
+        if: inputs.publish_driver
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          node scripts/package-wine-driver.mjs
+          gh release create wine-driver-11.18-coop1 .local/driver-dist/* --target "$GITHUB_SHA" --draft --title "Wine 11.18 Coop DXMT driver (deneysel)" --notes-file .local/driver-release-notes.md

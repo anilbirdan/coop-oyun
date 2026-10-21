@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 typedef HRESULT (WINAPI *create_device_swapchain_fn)(IDXGIAdapter *,D3D_DRIVER_TYPE,HMODULE,UINT,const D3D_FEATURE_LEVEL *,UINT,UINT,const DXGI_SWAP_CHAIN_DESC *,IDXGISwapChain **,ID3D11Device **,D3D_FEATURE_LEVEL *,ID3D11DeviceContext **);
-int main(void)
+static int run_probe(void)
 {
     HWND window=CreateWindowExA(0,"STATIC","Coop Direct3D denetimi",WS_OVERLAPPEDWINDOW,0,0,96,96,NULL,NULL,GetModuleHandleA(NULL),NULL);
     HMODULE d3d11;
@@ -40,6 +40,9 @@ int main(void)
     swap_desc.Windowed=TRUE;swap_desc.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
     hr=create(NULL,D3D_DRIVER_TYPE_HARDWARE,NULL,0,NULL,0,D3D11_SDK_VERSION,&swap_desc,&swap,&device,&level,&context);
     if(FAILED(hr)){printf("D3D11_PROBE create_device_failed=%08lx\n",(unsigned long)hr);goto done;}
+    if(!SetWindowPos(window,NULL,0,0,160,128,SWP_NOMOVE|SWP_NOZORDER)){printf("D3D11_PROBE resize_window_failed\n");goto done;}
+    hr=IDXGISwapChain_ResizeBuffers(swap,2,80,80,DXGI_FORMAT_R8G8B8A8_UNORM,0);
+    if(FAILED(hr))goto failed;
     hr=IDXGISwapChain_GetBuffer(swap,0,&IID_ID3D11Texture2D,(void **)&back);
     if(FAILED(hr))goto failed;
     hr=ID3D11Device_CreateRenderTargetView(device,(ID3D11Resource *)back,NULL,&target);
@@ -73,4 +76,12 @@ done:
     if(device)ID3D11Device_Release(device);
     FreeLibrary(d3d11);DestroyWindow(window);
     return result;
+}
+
+int main(void)
+{
+    int i;
+    for(i=0;i<2;i++)if(run_probe())return 1;
+    printf("D3D11_PROBE resize_destroy_reopen_passed\n");
+    return 0;
 }
