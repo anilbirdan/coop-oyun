@@ -31,8 +31,16 @@ if(process.argv[2]==='prepare'){
   const header=path.join(driverSource,'macdrv.h');
   const originalHeader=await fs.readFile(header,'utf8');
   if(!originalHeader.includes('WineContentView    *client_view;'))throw new Error('Beklenen Wine 11.18 pencere alani bulunamadi; uyarlama uygulanmadi.');
-  await fs.writeFile(header,'#define get_win_data coop_wine_get_win_data\n#define release_win_data coop_wine_release_win_data\n'+originalHeader);
+  await fs.writeFile(header,'#define get_win_data coop_wine_get_win_data\n#define release_win_data coop_wine_release_win_data\n'+originalHeader+'\nextern void coop_dxmt_update_window(HWND hwnd);\nextern void coop_dxmt_destroy_window(HWND hwnd);\n');
   await fs.copyFile(path.join(root,'scripts/wine-dxmt-compat.c'),path.join(driverSource,'dxmt_compat.c'));
+  const windowSource=path.join(driverSource,'window.c');
+  let window=await fs.readFile(windowSource,'utf8');
+  for(const [name,hook] of Object.entries({macdrv_WindowPosChanged:'coop_dxmt_update_window',macdrv_DestroyWindow:'coop_dxmt_destroy_window'})){
+    const pattern=new RegExp('(void '+name+'\\([^)]*\\)\\s*\\{)','g');
+    let count=0;window=window.replace(pattern,match=>{count++;return match+'\n    '+hook+'(hwnd);';});
+    if(count!==1)throw new Error('Tek pencere yasam dongusu bildirimi bulunamadi: '+name+' / '+count);
+  }
+  await fs.writeFile(windowSource,window);
   const makefile=path.join(driverSource,'Makefile.in');
   const make=await fs.readFile(makefile,'utf8');
   if(!make.includes('SOURCES = \\\n'))throw new Error('Wine kaynak listesi taninamadi.');

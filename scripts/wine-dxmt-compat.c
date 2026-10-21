@@ -8,11 +8,64 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include <pthread.h>
 #include "macdrv.h"
 
 /* macdrv.h maps Wine's internal callers to these internal functions. */
 #undef get_win_data
 #undef release_win_data
+
+struct coop_dxmt_surface
+{
+    HWND hwnd;
+    struct client_surface *client;
+    struct coop_dxmt_surface *next;
+};
+static pthread_mutex_t coop_surfaces_lock = PTHREAD_MUTEX_INITIALIZER;
+static struct coop_dxmt_surface *coop_surfaces;
+
+/* Wine 11 creates host client views lazily for rendering surfaces. DXMT 0.80
+ * predates that API, so keep one host surface for each DXMT window and release
+ * it before Wine destroys the window. No borrowed GDI view is fabricated.
+ */
+static void coop_ensure_client_surface(HWND hwnd)
+{
+    struct coop_dxmt_surface *entry;
+    pthread_mutex_lock(&coop_surfaces_lock);
+    for (entry = coop_surfaces; entry; entry = entry->next)
+        if (entry->hwnd == hwnd) break;
+    if (!entry && (entry = calloc(1, sizeof(*entry))))
+    {
+        entry->hwnd = hwnd;
+        entry->client = macdrv_CreateClientSurface(hwnd, 0, TRUE);
+        if (entry->client)
+        {
+            entry->next = coop_surfaces;
+            coop_surfaces = entry;
+        }
+        else free(entry);
+    }
+    pthread_mutex_unlock(&coop_surfaces_lock);
+}
+
+void coop_dxmt_update_window(HWND hwnd)
+{
+    struct coop_dxmt_surface *entry;
+    pthread_mutex_lock(&coop_surfaces_lock);
+    for (entry = coop_surfaces; entry; entry = entry->next)
+        if (entry->hwnd == hwnd) { client_surface_present(entry->client); break; }
+    pthread_mutex_unlock(&coop_surfaces_lock);
+}
+
+void coop_dxmt_destroy_window(HWND hwnd)
+{
+    struct coop_dxmt_surface **link, *entry = NULL;
+    pthread_mutex_lock(&coop_surfaces_lock);
+    for (link = &coop_surfaces; *link; link = &(*link)->next)
+        if ((*link)->hwnd == hwnd) { entry = *link; *link = entry->next; break; }
+    pthread_mutex_unlock(&coop_surfaces_lock);
+    if (entry) { client_surface_release(entry->client); free(entry); }
+}
 
 /* DXMT 0.80 reads the first four pointer fields of the older layout.
  * Never expose Wine 11.18's rects at the old client_cocoa_view offset.
@@ -52,6 +105,12 @@ struct coop_dxmt_window_data *get_win_data(HWND hwnd)
 {
     struct macdrv_win_data *original = coop_wine_get_win_data(hwnd);
     struct coop_dxmt_window_data *compat;
+    if (original && !original->client_view)
+    {
+        coop_wine_release_win_data(original);
+        coop_ensure_client_surface(hwnd);
+        original = coop_wine_get_win_data(hwnd);
+    }
     if (getenv("COOP_DXMT_DIAGNOSTICS"))
         fprintf(stderr,"COOP_DXMT_WINDOW found=%u client_view=%u\n",original != NULL,
                 original && original->client_view != NULL);
