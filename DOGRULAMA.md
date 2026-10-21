@@ -1,67 +1,37 @@
-# Doğrulama kaydı — 21 Ekim 2026
+# Doğrulama — 0.3.0
 
-## Geçen kontroller
+21 Ekim 2026. Hedef M5; test makinesi Apple M1 (Virtual), macOS 15.7.9 ARM64. M5 veya oyun başarısı çıkarımı yapılmaz.
 
-`node --test`: son tamamlanan koşuda **22 / 22 geçti**, 0 başarısız. Windows üzerinde gerçek geçici dosya ve localhost bağlantıları kullanıldı. Wine komutları sahte çalıştırıcıyla sınandı; bu sayılar Wine veya oyun başarısı değildir.
+## Son gerçek uygulama koşusu
 
-- Mac dışındaki ortamda gerçek Wine işlemlerinin engellenmesi.
-- Orijinal Wine'a dokunmadan özel kopya ve DXMT dosya özetleri.
-- Yanlış Wine sürümünü reddetme; önceki motoru koruma.
-- Oyun başına ayrı Steam/Wine ortamı ve motor bağlantısı.
-- Kapatma komutunun yalnızca ilgili WINEPREFIX'e gönderilmesi.
-- Başlatma isteğinin arka planda gönderilmesi; oynama süresine süre aşımı uygulanmaması.
-- Yarım kalan hazırlığın ilk motorunda devam etmesi.
-- Geçersiz oyun ve klasör dışına çıkma girişiminin reddi.
-- Başarı bildirimi için cihaz/sürüm bilgisi; katılma ve oda kurma ayrımı.
-- Bozuk JSON kaydının üzerine yazılmadan hata verilmesi.
-- İkinci uygulama örneğine karşı veri kilidi.
-- Gerçek Node alt süreciyle boşluk ve özel işaret içeren argümanlar; sıfır dışı çıkışın hata olması.
-- Yerel API erişim anahtarı, yabancı site isteğini reddetme ve proje dosyalarını sunmama.
-- Kullanıcı test bildiriminin kaydedilmesi ve dışa aktarılması.
+[39673633606](https://github.com/anilbirdan/coop-oyun/actions/runs/39673633606), kaynak b3dc40d639dea6875e12efbb373e184de1310e57: **GEÇTİ**.
 
-`node --check`: src/server.mjs, src/engine.mjs ve public/app.js sözdizimi kontrolleri geçti.
+- 27/27 yazılım kontrolü gerçek Mac'te geçti. Aynı kontroller yerelde de geçti; Wine çağrıları bu küçük kontrollerde taklit edilir.
+- Resmî Wine 11.18, DXMT 0.80 ve kaynaklarımızdan derlenen sürücü sabit boyut/özetlerle indirilip uygulamanın kendi kurulum işleviyle kuruldu.
+- Gerçek Wine Windows sürüm komutu geçti. Kapanmış hizmetin sessiz çıkış 1 vermesi, sınırlandırılmış beklemeyle doğrulanarak ele alınıyor; gerçek bekleme hatası saklanmıyor.
+- Uygulamanın hazırladığı Palworld ortamında gerçek Windows D3D11 programı çalıştı. Pencere/swapchain, renk geri okuma, Present, boyutlandırma ve iki defa oluşturma/yok etme geçti. Bu, Palworld oyununun çalıştırılması değildir.
+- Resmî Valve Steam kurucusu aynı ortamda çalıştırıldı; steam.exe dosyaları bulundu. Hesap girişi veya Steam oyun istemcisinin tam kullanılabilirliği doğrulanmadı.
+- 0.3.0 Mac uygulama ZIP'i üretildi, ditto ile açıldı. Paketteki ARM64 Node, erişim anahtarlı yerel API ve normal kapanış geçti.
+- Uygulama kabuğu macOS open üzerinden açıldı; sürüm ve üç oyun profili API'den doğrulandı, normal kapandı. Finder tıklaması ve tarayıcıdan indirmenin Gatekeeper süreci sınanmadı.
 
-## Ekran kontrolü
+Sınanan uygulama kaynak özeti: a4779df8702f5fb11bff24562274dfec0d4a630ca038cf99b880dc9e14ba340c. Yerel paket aynı uygulama kaynak özetini taşıyor. Tam makine sonucu BULUT_MAC_DOGRULAMA.json içinde. Dağıtılacak ZIP ayrıca indirilip ayrı Mac açılış testine alınır; bu kayıt onun yerine geçmez.
 
-Yerel uygulama tarayıcıda açıldı. Bellwright, Palworld ve Raft kartları görüldü. Palworld penceresinde Windows Steam yolu, ayrı katılma/oda kurma adımları ve test formu görüldü. Kurulum ekranı ve Windows üzerinde devre dışı Mac düğmeleri kontrol edildi. Ana ekran görüntüsü ONIZLEME.png.
+## Sürücü ve kaynak kanıtı
 
-## Bulut Mac sonucu — 21 Ekim 2026
+[39671105404](https://github.com/anilbirdan/coop-oyun/actions/runs/39671105404): aynı Wine 11.18 kaydından yalnız Mac sürücüsü derlendi. DXMT 0.80 eski pencere veri düzeni ve Wine 11'in tembel client surface arayüzü uyarlandı. Gerçek D3D11 renkleri RGBA 64,128,191,255 eşleşti; sunum/boyutlandırma/yeniden açma geçti.
 
-[39535358384 numaralı gerçek koşu](https://github.com/anilbirdan/coop-oyun/actions/runs/39535358384), kaynak c209d4b4958f5b129aeeff02dc033aaf019231eb:
+[Sürücü ön sürümü](https://github.com/anilbirdan/coop-oyun/releases/tag/wine-driver-11.18-coop1) ikiliyi, LGPL lisansını, tam değiştirilmiş Wine kaynaklarını ve yapım yönergelerini birlikte sunar. İndirilen sürücünün arşiv ve dosya özetleri yerelde de eşleşti. Kesin özetler src/releases.mjs içindedir.
 
-- Apple M1 (Virtual), macOS 15.7.9, ARM64; Rosetta komutu geçti. M5 testi değildir.
-- 23/23 yazılım kontrolü geçti. Bu kontroller oyun çalıştırmaz.
-- Resmî motor arşivleri doğrulandı, kuruldu; gerçek Wine sürüm komutu geçti.
-- Mac ZIP paketi üretildi, ditto ile açıldı. Paketteki ARM64 Node, erişim anahtarlı yerel API ve normal kapanış geçti.
-- Paket macOS `open` ile açıldı; uygulamanın yerel API yanıtı ve kapanışı doğrulandı. Finder tıklaması veya görsel ekran testi yapılmadı.
-- Windows ortamı başlatma BAŞARISIZ: wineboot çıkış 1. Grafik, Steam ve oyun/co-op sonucu yok. Sorun çözülmeden çalışan oyun uygulaması olarak sunulmaz.
+## Henüz doğrulanmayan
 
-Sınanan uygulama kaynak özeti: b7b20c44dba2d0fa0ce287157683cbb95d0cba78575aad4dd627e7c5c22be8d5. Yerel dağıtım ZIP'inin bu özetle eşleşmesi ayrıca gerekir.
+- Steam hesabına çevrim içi giriş.
+- Bellwright, Palworld ve Raft oyununun açılması; oyun grafiği ve performansı.
+- Windows arkadaşının odasına katılma, Mac'ten oda kurma.
+- Oyun dünyasını kaydetme/yeniden yükleme, 30 dakika bağlantı.
+- Gerçek hedef M5 donanımı ve ilk Finder/Gatekeeper akışı.
 
-Sonraki karşılaştırmalar:
+Paket imzalı/noter onaylı değildir. Temel D3D11 sınaması ticari oyun veya co-op testi değildir. Kullanıcının formdan bildirdiği sonuçlar ayrıca user-reported olarak işaretlenir.
 
-- [39535672877](https://github.com/anilbirdan/coop-oyun/actions/runs/39535672877): değiştirilmemiş Gcenx Wine 11.18 aynı ARM64 Mac üzerinde `Microsoft Windows 10.0.19045` yanıtını verdi. Sorun genel olarak bulut Mac'in Wine çalıştıramaması değildir. Yerel hata ayıklayıcı süre sınırında sonuç vermedi.
-- [39665320266](https://github.com/anilbirdan/coop-oyun/actions/runs/39665320266): WS12 özgün arşivi DXMT eklenmeden de başarısız. win64, wow64 ve fallback kütüphane yollarında aynı wineboot çıkış 1.
-- [39665840217](https://github.com/anilbirdan/coop-oyun/actions/runs/39665840217): resmî WS11 alternatifi de başarısız; DXMT dışa aktarımları da bulunmadı. Aday elendi.
-- [39670420803](https://github.com/anilbirdan/coop-oyun/actions/runs/39670420803), e4a8262: Wine 11.18 kaynağından derlenen, eski veri düzenini ve yeni client surface yaşam döngüsünü uyarlayan sürücüyle Windows komutu GEÇTİ. DXMT 0.80 gerçek Direct3D 11 aygıtı, pencere ve swapchain oluşturdu. Görüntü renkleri belleğe geri okundu: beklenen RGBA 64,128,191,255 eşleşti; Present GEÇTİ. Temel D3D11 görüntü doğrulaması, oyun/performans/co-op doğrulaması değildir. Sürücü SHA256: 11f1fd4bef90f5097d3e91ead5bce68a813387ee015191f0ed518b3b4a7a69e4. Uygulamanın otomatik kurulumuna entegrasyon henüz yapılmadı; boyutlandırma ve yeniden açma sınaması eklendi.
+## Önceki yol
 
-## Bekleyen gerçek kontroller
-
-Mac / M5 erişimi yok. Aşağıdakilerin hiçbiri başarı olarak işaretlenmedi:
-
-- Gerçek Wine Sikarugir 11.0 revision 1 paketinin uygulamayla çalıştırılması.
-- DXMT grafik çevirisinin bu Wine paketiyle yüklenmesi.
-- Hedef M5'te Rosetta, macOS izinleri ve paket dış bağımlılıklarının uygunluğu.
-- Valve adresinden canlı Steam indirmesi, kurulum ve çevrim içi giriş.
-- Üç oyunun açılması, performansı, Windows odasına katılması, Mac'ten oda kurması.
-- Dünyanın kaydedilip yeniden yüklenmesi ve 30 dakika bağlantı testi.
-
-Paket imzalı/noter onaylı değildir. Node çalıştırıcısı içeren Mac .app paketi üretildi. ZIP bütünlüğü, Info.plist, ARM64 ikili başlığı ve Mac'te gereken çalıştırma izinleri kontrol edildi. Son paket boyutu ve SHA256: PAKET_DOGRULAMA.json. README önkoşulları geçerlidir.
-
-## Gerçek indirilen dosyalarla inceleme
-
-Resmî GitHub API dosya özetleri ve Node SHASUMS256 listesi okunarak arşivler indirildi. SHA256 değerleri eşleşti. Bütün arşivlerin dosya ve sembolik bağlantı yolları içeride kalıyor. ARM64 Node ikilisinin Mach-O başlığı ve sistem kütüphanelerine bağlantıları kontrol edildi.
-
-Wine 11.18'in gerçek winemac.so dosyasında DXMT'nin kullandığı bağlantı bulunmadı; aday elendi. WS12WineSikarugir11.0_1 gerçek dosyasında `_macdrv_functions` dışa aktarımı var. DXMT 0.80 kaynağında bu tabloya dlsym ile erişildiği görüldü. Gerçek DXMT arşivi uygulamanın dosya bulma işleviyle açıldı: i386 dosyaları atlandı, x86_64 ve builtin biçimi doğru saptandı. Bu incelemeler herhangi bir Mac ikilisini çalıştırmadan yapıldı. Ayrıntı: VENDOR_DOGRULAMA.json.
-
-0.2 son yerel ekran kontrolünde otomatik kurulum ve denetim düğmeleri görüldü; Windows'ta kapalı oldukları doğrulandı. Tarayıcı hata/uyarı kayıtları boştu. KURULUM-0.2.png yeni ekranı gösterir. Arka plan çalıştırma hata çıktıları da artık dosyaya alınır.
+Sikarugir WS12/WS11 alternatifleri gerçek Wine ortamını başlatamadı; özgün paket, wow64 ve fallback yollarında da aynı wineboot hatası görüldü. Standart Wine 11.18 Windows komutu çalışınca kaynak sürücüsü yolu seçildi. Önceki yalnız dosya/simge veya Windows arayüz kontrolleri oyun başarısı sayılmadı. Karar ve gerekçeler KARARLAR.md / 12–15 içinde; eski VENDOR_DOGRULAMA.json tarihî statik incelemedir.

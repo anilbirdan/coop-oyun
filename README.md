@@ -2,15 +2,15 @@
 
 Mac için deneysel, Türkçe oyun başlatıcısı. Bellwright, **Palworld Windows/Steam sürümü** ve Raft kapsamda. Abonelik veya uygulama hesabı yok; oyun lisansları kullanıcıya ait olmalı.
 
-**Sürüm 0.3.0 hazırlanıyor.** Kaynaktan uyarlanan Wine sürücüsüyle bulut Mac üzerinde Windows komutu, gerçek Direct3D 11 görüntüsü, boyutlandırma ve kapatıp yeniden açma geçti. Uygulamanın otomatik kurulumuyla son doğrulama sürüyor. **Oyun, performans ve arkadaş bağlantısı henüz doğrulanmadı.** Paket imzalı/noter onaylı değildir.
+**0.3.0 deneme sürümü.** Bulut Mac üzerinde otomatik motor kurulumu, gerçek Direct3D 11 görüntüsü, boyutlandırma/yeniden açma, Steam dosyalarının kurulumu ve uygulamanın açılıp kapanması geçti. **Steam hesabına giriş, oyun, performans ve arkadaş bağlantısı henüz doğrulanmadı.** M5 hedeflenir; test makinesi M1 sanal Mac idi. Paket imzalı/noter onaylı değildir.
 
 ## Açma
 
-1. `dist/Coop-Oyun-M5-0.3.0.zip` dosyasını Mac'te açın.
+1. [Mac deneme paketini indirin](https://github.com/anilbirdan/coop-oyun/releases/download/v0.3.0/Coop-Oyun-M5-0.3.0.zip) ve ZIP dosyasını Mac’te açın.
 2. **Coop Oyun.app** uygulamasını Uygulamalar klasörüne taşıyıp açın. Node programın içinde gelir; ayrıca kurulmaz. M serisi Mac içindir.
 3. Tarayıcıda yerel arayüz açılır. Programı tekrar açmak aynı pencereye bağlantı verir. Kapatmak için arayüzde **Uygulamayı kapat** seçeneğini kullanın. Oyunlar otomatik kapatılmaz; önce oyun içinden kaydedin.
 
-macOS ilk açılışı imzasız paket olduğu için engelleyebilir; güvenlik ayarları otomatik değiştirilmez. Bulut ARM64 Mac'te `open` üzerinden paket açılışı ve yerel hizmet doğrulandı; Finder tıklaması ve hedef M5 doğrulanmadı. Ayrıntı DOGRULAMA.md içinde.
+macOS ilk açılışı imzasız paket olduğu için engelleyebilir; güvenlik ayarları otomatik değiştirilmez. Bulut ARM64 Mac'te `open` üzerinden paket açılışı ve yerel hizmet doğrulandı; Finder tıklaması ve hedef M5 doğrulanmadı. Ayrıntı DOGRULAMA.md içinde. İlk açılış engellenirse [Apple’ın uygulamaya özel açma yönergesini](https://support.apple.com/tr-tr/102445) izleyin; sistem güvenliğini kapatmayın.
 
 Kaynak koddan çalıştıracaksanız Node.js 22+ gerekir: `node src/server.mjs`. `Baslat.command` da aynı kaynak sürümünü açar.
 

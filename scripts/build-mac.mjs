@@ -25,7 +25,7 @@ const node = await fs.open(path.join(resources, 'node'));
 const header = Buffer.alloc(12); try { await node.read(header, 0, 12, 0); } finally { await node.close(); }
 if (header.readUInt32LE(0) !== 0xfeedfacf || header.readUInt32LE(4) !== 0x0100000c) throw new Error('Paket içindeki Node ARM64 Mach-O değil.');
 for (const folder of ['src', 'public']) await fs.cp(path.join(project, folder), path.join(resources, 'app', folder), {recursive:true, force:true});
-for (const file of ['package.json', 'README.md', 'UYUMLULUK.md', 'KARARLAR.md', 'DOGRULAMA.md']) await fs.copyFile(path.join(project, file), path.join(resources, 'app', file));
+for (const file of ['package.json', 'README.md', 'UYUMLULUK.md', 'KARARLAR.md', 'DOGRULAMA.md', 'ACIK_KAYNAKLAR.md']) await fs.copyFile(path.join(project, file), path.join(resources, 'app', file));
 await fs.writeFile(path.join(contents, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>

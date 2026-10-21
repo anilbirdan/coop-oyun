@@ -1,6 +1,6 @@
 # Oyunlara göre uyumluluk
 
-İnceleme: 21 Ekim 2026. Bizim Mac testimiz yok. Hedef, kullanıcının mevcut Windows/Steam oyunlarını yeniden Mac sürümü satın almadan çalıştırması; Palworld kapsamda kalacak.
+İnceleme: 21 Ekim 2026. Üç oyunun kendi Mac/co-op testimiz yok. Temel motorun bulut Mac üzerinde gerçek Direct3D görüntü sınaması geçti; ayrıntı DOGRULAMA.md içinde. Hedef, kullanıcının mevcut Windows/Steam oyunlarını yeniden Mac sürümü satın almadan çalıştırması; Palworld kapsamda kalacak.
 
 | Oyun / Steam kimliği | Açılma hakkında kaynak | Windows odasına katılma | Mac'ten oda kurma | Başlangıç kararı |
 |---|---|---|---|---|
@@ -21,7 +21,10 @@
 
 ## Ücretsiz motor adayı
 
-**Güncelleme:** Wine macOS 11.18 gerçek ikili incelemesinde gerekli grafik bağlantısı olmadığı için elendi. Yeni aday WS12WineSikarugir11.0_1 + DXMT 0.80 builtin. Bu arşivdeki sürücü `_macdrv_functions` bağlantısını sunuyor; gerçek dosyalarla doğrulandı. Grafik yüklemesi ve co-op yine Mac testi bekliyor. VENDOR_DOGRULAMA.json ayrıntıları içerir.
+**0.3.0 güncellemesi:** Standart Wine 11.18'in grafik bağlantısı eksik olduğu için ilk hazır paket doğrudan kullanılamıyordu. Sikarugir alternatifleri de gerçek Windows ortamını açamadı. Artık aynı resmî Wine 11.18 kaynağından derlenen, DXMT pencere arayüzünü uyarlayan sürücümüz kullanılıyor. Wine 11.18 + sürücü + DXMT 0.80, gerçek bulut Mac'te küçük bir Direct3D görüntüsü, renk geri okuma, Present ve pencere yaşam döngüsü sınamasını geçti. Bu sonuç aşağıdaki oyunların açılmasına veya çok oyunculu başarısına aktarılmaz.
+
+- Sürücü, lisans ve tam değiştirilmiş kaynak: https://github.com/anilbirdan/coop-oyun/releases/tag/wine-driver-11.18-coop1
+- Gerçek grafik ve pencere testi: https://github.com/anilbirdan/coop-oyun/actions/runs/39671105404
 
 - https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.18
 - https://github.com/Sikarugir-App/Engines/releases/tag/v1.0

@@ -130,7 +130,7 @@ finally{
   await fs.mkdir(local,{recursive:true});
   report.passed=report.steps.length===8&&report.steps.every(step=>step.status==='passed');
   await writeJSON(path.join(local,'cloud-mac-report.json'),report);
-  const markdown=['# Bulut Mac temel test sonucu','',...report.steps.map(step=>`- ${step.name}: ${step.status}${step.error?' — '+step.error:''}`),'','Oyun acilisi, grafik, Steam girisi ve co-op bu testle dogrulanmaz. Finder ile acilis da sinanmadi.',''];
+  const markdown=['# Bulut Mac temel test sonucu','',...report.steps.map(step=>`- ${step.name}: ${step.status}${step.error?' — '+step.error:''}`),'','Kucuk Direct3D goruntu sinamasi oyun grafigi/performansi demek degildir. Steam girisi, oyun acilisi, co-op ve Finder tiklamasi bu testle dogrulanmaz.',''];
   await fs.writeFile(path.join(local,'cloud-mac-report.md'),markdown.join('\n'));
   console.log('COOP_CLOUD_REPORT='+JSON.stringify(report));
 }
