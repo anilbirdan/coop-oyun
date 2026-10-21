@@ -38,6 +38,13 @@ Yerel uygulama tarayıcıda açıldı. Bellwright, Palworld ve Raft kartları g�
 
 Sınanan uygulama kaynak özeti: b7b20c44dba2d0fa0ce287157683cbb95d0cba78575aad4dd627e7c5c22be8d5. Yerel dağıtım ZIP'inin bu özetle eşleşmesi ayrıca gerekir.
 
+Sonraki karşılaştırmalar:
+
+- [39535672877](https://github.com/anilbirdan/coop-oyun/actions/runs/39535672877): değiştirilmemiş Gcenx Wine 11.18 aynı ARM64 Mac üzerinde `Microsoft Windows 10.0.19045` yanıtını verdi. Sorun genel olarak bulut Mac'in Wine çalıştıramaması değildir. Yerel hata ayıklayıcı süre sınırında sonuç vermedi.
+- [39665320266](https://github.com/anilbirdan/coop-oyun/actions/runs/39665320266): WS12 özgün arşivi DXMT eklenmeden de başarısız. win64, wow64 ve fallback kütüphane yollarında aynı wineboot çıkış 1.
+- [39665840217](https://github.com/anilbirdan/coop-oyun/actions/runs/39665840217): resmî WS11 alternatifi de başarısız; DXMT dışa aktarımları da bulunmadı. Aday elendi.
+- Çalışan 11.18 sürümüyle aynı Wine kaynağından Mac grafik sürücüsünün DXMT bağlantılarını derleme denemesi başlatıldı. Başarı veya uygulamaya entegrasyon sonucu henüz yok.
+
 ## Bekleyen gerçek kontroller
 
 Mac / M5 erişimi yok. Aşağıdakilerin hiçbiri başarı olarak işaretlenmedi:
