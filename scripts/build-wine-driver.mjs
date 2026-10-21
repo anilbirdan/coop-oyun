@@ -15,7 +15,6 @@ if(process.argv[2]==='prepare'){
   await fs.mkdir(path.join(local,'driver-runtime'),{recursive:true});
   await runProcess('/usr/bin/tar',['-xf',archive,'-C',path.join(local,'driver-runtime')],{timeout:180000});
   const headers={
-    'macdrv.h':['get_win_data','release_win_data'],
     'macdrv_cocoa.h':['macdrv_view_create_metal_view','macdrv_view_get_metal_layer','macdrv_view_release_metal_view'],
   };
   for(const [file,names] of Object.entries(headers)){
@@ -28,7 +27,17 @@ if(process.argv[2]==='prepare'){
     }
     await fs.writeFile(target,text);
   }
-  console.log('WINE_DRIVER_SOURCE=wine-11.18 / 7b3fff76fa5178f6ce0141b2c776afa2a822f101; five public DXMT exports');
+  const driverSource=path.join(local,'wine-source/dlls/winemac.drv');
+  const header=path.join(driverSource,'macdrv.h');
+  const originalHeader=await fs.readFile(header,'utf8');
+  if(!originalHeader.includes('WineContentView    *client_view;'))throw new Error('Beklenen Wine 11.18 pencere alani bulunamadi; uyarlama uygulanmadi.');
+  await fs.writeFile(header,'#define get_win_data coop_wine_get_win_data\n#define release_win_data coop_wine_release_win_data\n'+originalHeader);
+  await fs.copyFile(path.join(root,'scripts/wine-dxmt-compat.c'),path.join(driverSource,'dxmt_compat.c'));
+  const makefile=path.join(driverSource,'Makefile.in');
+  const make=await fs.readFile(makefile,'utf8');
+  if(!make.includes('SOURCES = \\\n'))throw new Error('Wine kaynak listesi taninamadi.');
+  await fs.writeFile(makefile,make.replace('SOURCES = \\\n','SOURCES = \\\n\tdxmt_compat.c \\\n'));
+  console.log('WINE_DRIVER_SOURCE=wine-11.18 / 7b3fff76fa5178f6ce0141b2c776afa2a822f101; three Metal exports and two old-layout compatibility exports');
 }else if(process.argv[2]==='verify'){
   const candidates=['dlls/winemac.drv/winemac.so','dlls/winemac.drv/x86_64-unix/winemac.so'].map(file=>path.join(local,'wine-build',file));
   let compiled;for(const file of candidates)if(await fs.stat(file).catch(()=>null)){compiled=file;break;}
