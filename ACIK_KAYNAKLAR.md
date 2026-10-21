@@ -18,3 +18,9 @@ Kesin paket adresleri, boyutları ve SHA256 değerleri src/releases.mjs dosyası
 ## Burada yazılan
 
 Türkçe yerel arayüz, motor indirme/doğrulama/kurulum yönetimi, oyun başına ayrı ortam, Steam komutları, hata ve test kayıtları, Mac paketleme ve bulut test betikleri. Bunlar Wine'ın yerini almaz; hazır açık kaynak motorları yönetir.
+
+## Kaynaktan sürücü derleme denemesi
+
+Sikarugir paketinin gerçek Mac'te Windows ortamını açamaması üzerine ayrı bir deneme başladı. Çalışan standart Wine 11.18 ikilisiyle aynı [resmî Wine kaynak kaydından](https://github.com/wine-mirror/wine/tree/7b3fff76fa5178f6ce0141b2c776afa2a822f101) yalnız Mac grafik sürücüsü bulut Mac'te derlendi. İlk sürücüyle Windows komutu geçti; bu DXMT grafik başarısı değildir.
+
+DXMT 0.80'in beklediği eski pencere veri düzeni için scripts/wine-dxmt-compat.c eklendi; birleşik sürücü LGPL-2.1-or-later koşullarında tutulur. Derleme ve yama betiği scripts/build-wine-driver.mjs içinde, sabit kaynak kaydı ve resmî ikili özetiyle kayıtlıdır. Küçük gerçek Direct3D görüntü sınaması scripts/d3d11-probe.c içindedir. Uyarlamanın ve görüntü sınamasının sonuçları henüz bekleniyor. Uygulamanın otomatik motoru bu adayla değiştirilmedi; Wine'ın tamamını burada derledik denmez.
