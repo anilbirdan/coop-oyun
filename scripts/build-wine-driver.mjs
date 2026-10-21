@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {downloadVerified} from '../src/installer.mjs';
 import {releases} from '../src/releases.mjs';
-import {runProcess} from '../src/engine.mjs';
+import {runProcess,findDXMT} from '../src/engine.mjs';
 import {supportsDXMT} from '../src/macho.mjs';
 import {hashFile} from '../src/storage.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -45,10 +45,23 @@ if(process.argv[2]==='prepare'){
   if(!supportsDXMT(await fs.readFile(compiled)))throw new Error('Yeni surucu DXMT disari aktarimlarini sunmuyor.');
   await fs.copyFile(compiled,path.join(runtime,'lib/wine/x86_64-unix/winemac.so'));
   const prefix=path.join(local,'driver-prefix');await fs.mkdir(prefix,{recursive:true});
-  const env={...process.env,DYLD_LIBRARY_PATH:path.join(runtime,'lib'),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'-all'};
+  const env={...process.env,DYLD_LIBRARY_PATH:path.join(runtime,'lib'),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'-all',MVK_CONFIG_LOG_LEVEL:'0'};
+  const report={source:'7b3fff76fa5178f6ce0141b2c776afa2a822f101',wineArchiveSha256:releases.libraries.sha256,driverSha256:await hashFile(compiled),dxmtExportsVerified:true,windowsCommandVerified:false,basicD3D11FrameVerified:false,gameVerified:false,coOpVerified:false};
   try{
     const windows=await runProcess(path.join(runtime,'bin/wine'),['cmd.exe','/c','ver'],{env,timeout:120000});
     if(!windows.includes('Microsoft Windows'))throw new Error('Windows komutu beklenen cevabi vermedi.');
-    console.log('WINE_DRIVER_REPORT='+JSON.stringify({source:'7b3fff76fa5178f6ce0141b2c776afa2a822f101',wineArchiveSha256:releases.libraries.sha256,driverSha256:await hashFile(compiled),dxmtExportsVerified:true,windows,gameVerified:false,graphicsVerified:false,coOpVerified:false}));
-  }finally{await runProcess(path.join(runtime,'bin/wineserver'),['-k'],{env,timeout:15000}).catch(()=>{});}
+    report.windows=windows.trim();report.windowsCommandVerified=true;
+    const dxmtArchive=await downloadVerified(releases.dxmt,path.join(local,'vendor'),message=>process.stdout.write(message));
+    const dxmtFolder=path.join(local,'driver-dxmt');await fs.mkdir(dxmtFolder,{recursive:true});
+    await runProcess('/usr/bin/tar',['-xf',dxmtArchive,'-C',dxmtFolder],{timeout:120000});
+    const dxmt=await findDXMT(dxmtFolder);
+    for(const [name,from] of Object.entries(dxmt.files))await fs.copyFile(from,path.join(runtime,'lib/wine',name.endsWith('.so')?'x86_64-unix':'x86_64-windows',name));
+    await fs.copyFile(dxmt.files['winemetal.dll'],path.join(prefix,'drive_c/windows/system32/winemetal.dll'));
+    const probe=path.join(local,'d3d11-probe.exe');
+    await runProcess('x86_64-w64-mingw32-gcc',[path.join(root,'scripts/d3d11-probe.c'),'-O2','-o',probe,'-luser32','-ldxguid'],{timeout:60000});
+    report.frameProbe=await runProcess(path.join(runtime,'bin/wine'),[probe],{env:{...env,WINEDLLOVERRIDES:'dxgi,d3d11=b',WINEDEBUG:'err+all'},timeout:90000,maxOutput:8000,log:message=>process.stdout.write(message)});
+    if(!report.frameProbe.includes('D3D11_PROBE frame_readback_and_present_passed'))throw new Error('Gercek Direct3D goruntu denetimi gecmedi.');
+    report.basicD3D11FrameVerified=true;
+  }catch(error){report.error=error.message;throw error;}
+  finally{console.log('WINE_DRIVER_REPORT='+JSON.stringify(report));await runProcess(path.join(runtime,'bin/wineserver'),['-k'],{env,timeout:15000}).catch(()=>{});}
 }else throw new Error('prepare veya verify gerekiyor.');

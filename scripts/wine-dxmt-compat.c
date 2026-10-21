@@ -5,6 +5,7 @@
 #pragma makedep unix
 #include "config.h"
 #include <stdlib.h>
+#include <stddef.h>
 #include "macdrv.h"
 
 /* macdrv.h maps Wine's internal callers to these internal functions. */
@@ -22,6 +23,9 @@ struct coop_dxmt_window_data
     WineContentView *client_cocoa_view;
     struct macdrv_win_data *original;
 };
+
+_Static_assert(offsetof(struct coop_dxmt_window_data, client_cocoa_view) == 3 * sizeof(void *),
+               "DXMT 0.80 requires its client view at the fourth pointer slot");
 
 __attribute__((visibility("default")))
 struct coop_dxmt_window_data *get_win_data(HWND hwnd)
