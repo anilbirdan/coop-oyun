@@ -2,11 +2,11 @@
 
 Mac için deneysel, Türkçe oyun başlatıcısı. Bellwright, **Palworld Windows/Steam sürümü** ve Raft kapsamda. Abonelik veya uygulama hesabı yok; oyun lisansları kullanıcıya ait olmalı.
 
-**Sürüm 0.2: Mac uygulama paketi ve otomatik motor kurulumu hazırlandı. Mac'te çalıştırma ve arkadaş bağlantısı henüz denenmedi.** Program, mevcut ücretsiz Wine ve DXMT motorunu yönetir. Tamamlanmış oyun uyumluluğu garantisi değildir. Paket imzalı/noter onaylı değildir.
+**Sürüm 0.2.1: Mac uygulama paketi ve otomatik motor kurulumu. Bulut Mac doğrulaması sürüyor; oyun ve arkadaş bağlantısı henüz doğrulanmadı.** Program, mevcut ücretsiz Wine ve DXMT motorunu yönetir. Tamamlanmış oyun uyumluluğu garantisi değildir. Paket imzalı/noter onaylı değildir.
 
 ## Açma
 
-1. `dist/Coop-Oyun-M5-0.2.0.zip` dosyasını Mac'te açın.
+1. `dist/Coop-Oyun-M5-0.2.1.zip` dosyasını Mac'te açın.
 2. **Coop Oyun.app** uygulamasını Uygulamalar klasörüne taşıyıp açın. Node programın içinde gelir; ayrıca kurulmaz. M serisi Mac içindir.
 3. Tarayıcıda yerel arayüz açılır. Programı tekrar açmak aynı pencereye bağlantı verir. Kapatmak için arayüzde **Uygulamayı kapat** seçeneğini kullanın. Oyunlar otomatik kapatılmaz; önce oyun içinden kaydedin.
 
@@ -18,7 +18,7 @@ Windows üzerinde `node src/server.mjs --preview` arayüzü açar; ekrandaki yer
 
 ## Mac'te ilk kurulum
 
-Kurulum ekranındaki **Ücretsiz motoru indir ve kur** düğmesini kullanın. Wine Sikarugir 11.0 revision 1 ve DXMT 0.80 builtin resmî kaynaklardan indirilir; her arşivin boyutu ve önceden sabitlenmiş SHA256 özeti doğrulanır. Yaklaşık 186 MB indirme, hazırlık için en az 3 GB boş alan gerekir. Oyunlar ayrıca indirilir. Wine için Rosetta ve macOS izinleri gerekebilir; Apple'ın kurulum ekranlarını siz tamamlarsınız.
+Kurulum ekranındaki **Ücretsiz motoru indir ve kur** düğmesini kullanın. Wine Sikarugir 11.0 revision 1, DXMT 0.80 builtin ve Gcenx Wine paketinden gereken destek kütüphaneleri resmî kaynaklardan indirilir; her arşivin boyutu ve sabit SHA256 özeti doğrulanır. Yaklaşık 377 MB indirme, hazırlık için en az 4 GB boş alan gerekir. Gcenx paketinin Wine motoru kullanılmaz; yalnızca yardımcı kütüphaneleri alınır. Oyunlar ayrıca indirilir. Rosetta ve macOS izinleri gerekebilir; Apple'ın kurulum ekranlarını siz tamamlarsınız.
 
 Motor hazırlandıktan sonra **Kurulumu kontrol et** düğmesi Mac/Rosetta ve ayrı bir deneme ortamında Windows komutunu sınar. Bu kontrol, grafik veya co-op testi değildir. Gerçek sonuç yerel dosyada tutulur.
 

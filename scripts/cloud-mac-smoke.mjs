@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -10,7 +11,10 @@ import {readJSON,writeJSON} from '../src/storage.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const local=path.join(root,'.local');
-const report={at:new Date().toISOString(),platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,coOpVerified:false,finderLaunchVerified:false};
+const version=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8')).version;
+const report={at:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,coOpVerified:false,finderLaunchVerified:false,launchServicesVerified:false};
+const unpacked=path.join(local,'cloud-unpacked');
+const bundle=path.join(unpacked,'Coop Oyun.app');
 let engine; let app;
 async function step(name,operation){
   const result={name,status:'running'}; report.steps.push(result);
@@ -41,10 +45,11 @@ try{
     await runProcess(process.execPath,[path.join(root,'scripts/build-mac.mjs'),'--python','python3'],{timeout:180000,log:message=>process.stdout.write(message)});
   });
   await step('Paket icindeki ARM64 Node ve yerel API',async()=>{
-    const resources=path.join(local,'build-mac-0.2/Coop Oyun.app/Contents/Resources');
+    await runProcess('/usr/bin/ditto',['-xk',path.join(root,`dist/Coop-Oyun-M5-${version}.zip`),unpacked],{timeout:120000});
+    const resources=path.join(bundle,'Contents/Resources');
     const binary=path.join(resources,'node');
-    const version=await runProcess(binary,['--version']);
-    if(version!=='v'+releases.node.version)throw new Error('Paket Node surumu beklenenden farkli.');
+    const nodeVersion=await runProcess(binary,['--version']);
+    if(nodeVersion!=='v'+releases.node.version)throw new Error('Paket Node surumu beklenenden farkli.');
     // Execute the shipped runtime and shipped server code, not a mocked process.
     app=spawn(binary,[path.join(resources,'app/src/server.mjs'),'--no-browser'],{shell:false,env:{...process.env,COOP_DATA_DIR:engine.dataDir},stdio:['ignore','pipe','pipe']});
     let spawnFailure; app.once('error',error=>{spawnFailure=error;});
@@ -62,18 +67,40 @@ try{
     if(!response.ok)throw new Error('Paket API cevap vermedi: '+response.status);
     const state=await response.json();
     if(!state.mac||!state.engine||state.games.map(game=>game.id).join(',')!=='bellwright,palworld,raft')throw new Error('Paket durumu beklenenden farkli.');
-    report.packagedNodeVersion=version;
+    report.packagedNodeVersion=nodeVersion;
+    report.packagedSourceHash=(await readJSON(path.join(resources,'build-manifest.json'))).sourceHash;
     const exit=new Promise(resolve=>app.once('exit',resolve));
     const quit=await fetch(session.origin+'api/quit',{method:'POST',headers:{Authorization:'Bearer '+session.token,'Content-Type':'application/json'},body:'{}'});
     if(!quit.ok)throw new Error('Paket normal kapanamadi.');
     await Promise.race([exit,delay(10000).then(()=>{throw new Error('Paket kapanis suresi doldu.');})]);
+  });
+  await step('ZIP uygulamasini macOS open ile ac',async()=>{
+    const sessionFile=path.join(os.homedir(),'Library/Application Support/CoopOyun/session.json');
+    if(await readJSON(sessionFile,null))throw new Error('Varsayilan uygulama oturumu zaten var; uzerine yazilmadi.');
+    await runProcess('/usr/bin/open',['-n',bundle],{timeout:15000});
+    let session;
+    for(let i=0;i<150;i++){
+      session=await readJSON(sessionFile,null);
+      if(session)break;
+      await delay(100);
+    }
+    if(!session){
+      const details=await fs.readFile(path.join(os.homedir(),'Library/Logs/CoopOyun/launcher.log'),'utf8').catch(()=>'');
+      throw new Error('Mac uygulama kabugu baslamadi. '+details.slice(-3000));
+    }
+    const headers={Authorization:'Bearer '+session.token};
+    const result=await fetch(session.origin+'api/state',{headers,signal:AbortSignal.timeout(5000)});
+    if(!result.ok||(await result.json()).version!==version)throw new Error('Mac open uygulama durumu dogrulanamadi.');
+    const quit=await fetch(session.origin+'api/quit',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:'{}'});
+    if(!quit.ok)throw new Error('Mac uygulama kabugu kapanamadi.');
+    report.launchServicesVerified=true;
   });
 }catch(error){report.error=error.message;process.exitCode=1;console.error(error.message);}
 finally{
   if(app&&app.exitCode===null)app.kill('SIGTERM');
   await engine?.close();
   await fs.mkdir(local,{recursive:true});
-  report.passed=report.steps.length===5&&report.steps.every(step=>step.status==='passed');
+  report.passed=report.steps.length===6&&report.steps.every(step=>step.status==='passed');
   await writeJSON(path.join(local,'cloud-mac-report.json'),report);
   const markdown=['# Bulut Mac temel test sonucu','',...report.steps.map(step=>`- ${step.name}: ${step.status}${step.error?' — '+step.error:''}`),'','Oyun acilisi, grafik, Steam girisi ve co-op bu testle dogrulanmaz. Finder ile acilis da sinanmadi.',''];
   await fs.writeFile(path.join(local,'cloud-mac-report.md'),markdown.join('\n'));

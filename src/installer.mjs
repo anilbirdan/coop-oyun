@@ -59,22 +59,30 @@ export function validateArchiveListing(listing, expectedFolder) {
 export async function installOfficialEngine(engine, log, { fetcher = fetch } = {}) {
   engine.requireMac();
   const disk = await fs.statfs(engine.dataDir);
-  if (disk.bavail * disk.bsize < 3 * 1024 ** 3) throw new Error('Motor hazırlığı için en az 3 GB boş alan gerekiyor. Oyunlar için ayrıca alan gerekir.');
+  if (disk.bavail * disk.bsize < 4 * 1024 ** 3) throw new Error('Motor hazırlığı için en az 4 GB boş alan gerekiyor. Oyunlar için ayrıca alan gerekir.');
   const cache = inside(engine.dataDir, 'downloads');
   const work = inside(engine.dataDir, 'setup-' + randomUUID());
   await fs.mkdir(work, { recursive: true });
   try {
     const folders = {};
-    for (const name of ['wine', 'dxmt']) {
+    for (const name of ['wine','dxmt','libraries']) {
       const asset = releases[name]; log(asset.file + ' indiriliyor.\n');
       const archive = await downloadVerified(asset, cache, log, fetcher);
       const list = await engine.runner('/usr/bin/tar', ['-tf', archive], { timeout:120000, maxOutput:4000000, requireFullOutput:true });
       validateArchiveListing(list, asset.folder);
       const unpack = inside(work, name); await fs.mkdir(unpack);
       log(asset.file + ' açılıyor.\n');
-      await engine.runner('/usr/bin/tar', ['-xf', archive, '-C', unpack], { timeout:300000, log });
-      folders[name] = inside(unpack, asset.folder);
+      if(name==='libraries'){
+        const prefix=asset.folder+'/Contents/Resources/wine/lib/';
+        const files=list.split(/\r?\n/).filter(item=>item.startsWith(prefix)&&!item.slice(prefix.length).includes('/')&&item.endsWith('.dylib'));
+        if(!files.some(file=>file.endsWith('/libinotify.0.dylib')))throw new Error('Destek paketinde libinotify kütüphanesi bulunamadı.');
+        await engine.runner('/usr/bin/tar',['-xf',archive,'-C',unpack,...files],{timeout:300000,log});
+        folders[name]=inside(unpack,prefix);
+      }else{
+        await engine.runner('/usr/bin/tar',['-xf',archive,'-C',unpack],{timeout:300000,log});
+        folders[name]=inside(unpack,asset.folder);
+      }
     }
-    return await engine.importEngine({ winePath:folders.wine, dxmtPath:folders.dxmt, provenance:{ wine:releases.wine.sha256, dxmt:releases.dxmt.sha256 } }, log);
+    return await engine.importEngine({winePath:folders.wine,dxmtPath:folders.dxmt,librariesPath:folders.libraries,provenance:{wine:releases.wine.sha256,dxmt:releases.dxmt.sha256,libraries:releases.libraries.sha256}},log);
   } finally { await fs.rm(work, { recursive:true, force:true }); }
 }

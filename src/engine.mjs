@@ -9,6 +9,7 @@ import { Readable } from 'node:stream';
 import { games, gameById } from './catalog.mjs';
 import { exists, hashFile, inside, readJSON, writeJSON } from './storage.mjs';
 import { supportsDXMT } from './macho.mjs';
+const appVersion = JSON.parse(await fs.readFile(new URL('../package.json',import.meta.url),'utf8')).version;
 
 export function runProcess(binary, args, { env = process.env, log, timeout = 120000, background = false, outputFile, maxOutput = 32000, requireFullOutput = false } = {}) {
   return new Promise((resolve, reject) => {
@@ -135,9 +136,9 @@ export class Engine {
       }
       return { ...game, prepared:!!binding, steamInstalled:!!await this.steamPath(game.id), runtimeLog, tests:await readJSON(path.join(prefix,'tests.json'),[]) };
     }));
-    return { version: '0.2.0', platform: this.platform, arch: os.arch(), mac: this.platform === 'darwin', dataDir: this.dataDir, engine, games: library };
+    return { version:appVersion, platform:this.platform, arch:os.arch(), mac:this.platform === 'darwin', dataDir:this.dataDir, engine, games:library };
   }
-  async importEngine({ winePath, dxmtPath, provenance = null }, log = () => {}) {
+  async importEngine({winePath,dxmtPath,librariesPath,provenance=null},log=()=>{}) {
     this.requireMac();
     if (typeof winePath !== 'string' || typeof dxmtPath !== 'string' || !path.isAbsolute(winePath) || !path.isAbsolute(dxmtPath)) throw new Error('Wine ve DXMT için tam klasör yolu seçin.');
     const source = await fs.realpath(winePath);
@@ -159,12 +160,20 @@ export class Engine {
       await fs.cp(source, copy, { recursive: true, verbatimSymlinks: true, force: false, errorOnExist: true });
       const canonicalCopy = await fs.realpath(copy);
       const runtime = await findRuntime(copy);
+      if(librariesPath){
+        for(const file of await fs.readdir(librariesPath)){
+          if(!file.endsWith('.dylib'))continue;
+          const target=path.join(runtime.root,'lib',file);
+          await fs.rm(target,{force:true});
+          await fs.cp(path.join(librariesPath,file),target,{verbatimSymlinks:true});
+        }
+      }
       for (const dirName of ['bin', 'lib/wine/x86_64-unix', 'lib/wine/x86_64-windows']) {
         const real = await fs.realpath(path.join(runtime.root, dirName));
         const rel = path.relative(canonicalCopy, real);
         if (rel.startsWith('..') || path.isAbsolute(rel)) throw new Error('Wine paketi dış klasöre bağlı. Kendi içinde tam paket gerekiyor.');
       }
-      const version = await this.runner(runtime.binary, ['--version'], { timeout: 15000, log });
+      const version=await this.runner(runtime.binary,['--version'],{env:{...process.env,DYLD_LIBRARY_PATH:path.join(runtime.root,'lib')+':'+path.join(runtime.root,'lib/wine/x86_64-unix')},timeout:15000,log});
       if (!/^wine-11\.0(?:\b|$)/.test(version)) throw new Error('Bu sürüm grafik bağlantısı bulunan Wine 11.0 motorunu bekliyor. Bulunan: ' + version);
       const hashes = {};
       for (const [name, from] of Object.entries(dxmt.files)) {
@@ -192,8 +201,9 @@ export class Engine {
     return { record, binary: inside(dir, record.binary), root: inside(dir, record.root) };
   }
   environment(id, engine) {
-    return { ...process.env, WINEPREFIX:this.prefix(id), WINEDEBUG:'-all', WINEDLLOVERRIDES:engine?.record.graphicsMode === 'builtin' ? 'dxgi,d3d11=b' : 'dxgi,d3d11=n,b', WINEARCH:'win64' };
+    return {...process.env,...this.libraryEnvironment(engine),WINEPREFIX:this.prefix(id),WINEDEBUG:'-all',WINEDLLOVERRIDES:engine?.record.graphicsMode==='builtin'?'dxgi,d3d11=b':'dxgi,d3d11=n,b',WINEARCH:'win64'};
   }
+  libraryEnvironment(engine){return engine?{DYLD_LIBRARY_PATH:path.join(engine.root,'lib')+':'+path.join(engine.root,'lib/wine/x86_64-unix')}:{};}
   async prepare(id, log) {
     this.requireMac(); gameById(id);
     const prefix = this.prefix(id);
@@ -279,7 +289,7 @@ export class Engine {
     catch { throw new Error('Intel uyumluluğu (Rosetta) başlatılamadı. Apple’ın Rosetta kurulumunu tamamladıktan sonra yeniden deneyin.'); }
     const prefix = inside(this.dataDir,'diagnostics',engine.record.id);
     await fs.mkdir(prefix,{recursive:true});
-    const env = {...process.env, WINEPREFIX:prefix, WINEARCH:'win64', WINEDEBUG:'-all'};
+    const env={...process.env,...this.libraryEnvironment(engine),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'-all'};
     log('Ayrı denetim ortamında Windows komutu deneniyor.\n');
     await this.runner(engine.binary,['wineboot','-i'],{env,log,timeout:120000});
     const windows = await this.runner(engine.binary,['cmd','/c','ver'],{env,log,timeout:30000});
