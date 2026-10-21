@@ -35,7 +35,19 @@ try{
     report.engine={version:record.version,graphicsMode:record.graphicsMode,archiveHashes:record.provenance};
   });
   await step('Wine gercek Windows komutu',async()=>{
-    const result=await engine.diagnose(message=>process.stdout.write(message));
+    let result;
+    try { result=await engine.diagnose(message=>process.stdout.write(message)); }
+    catch(original){
+      const runtime=await engine.engineFor();
+      const prefix=path.join(local,'loader-diagnostic');
+      await fs.mkdir(prefix,{recursive:true});
+      const env={...process.env,...engine.libraryEnvironment(runtime),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'err+all,warn+all,trace+process,trace+module',WINELOADER:runtime.binary,WINESERVER:path.join(runtime.root,'bin/wineserver'),WINEDLLPATH:['x86_64-unix','x86_64-windows','i386-windows'].map(name=>path.join(runtime.root,'lib/wine',name)).join(':')};
+      console.log('LOADER_DIAGNOSTIC explicit loader/server/DLL paths');
+      try{await runProcess(runtime.binary,['wineboot','-i'],{env,timeout:90000,maxOutput:24000,log:message=>process.stdout.write(message)});console.log('LOADER_DIAGNOSTIC cmd='+await runProcess(runtime.binary,['cmd','/c','ver'],{env,timeout:30000}));}
+      catch(error){console.error('LOADER_DIAGNOSTIC '+error.message);}
+      finally{await runProcess(env.WINESERVER,['-k'],{env,timeout:15000}).catch(()=>{});}
+      throw original;
+    }
     report.wineDiagnostic={...result,graphicsVerified:false,coOpVerified:false};
     if(!result.windows.trim())throw new Error('Windows surum komutu bos sonuc verdi.');
   });
