@@ -141,8 +141,10 @@ export class Engine {
     this.requireMac();
     if (typeof winePath !== 'string' || typeof dxmtPath !== 'string' || !path.isAbsolute(winePath) || !path.isAbsolute(dxmtPath)) throw new Error('Wine ve DXMT için tam klasör yolu seçin.');
     const source = await fs.realpath(winePath);
-    const relative = path.relative(source, this.dataDir);
-    const reverse = path.relative(this.dataDir, source);
+    await fs.mkdir(this.dataDir,{recursive:true});
+    const canonicalData = await fs.realpath(this.dataDir);
+    const relative = path.relative(source, canonicalData);
+    const reverse = path.relative(canonicalData, source);
     const managedSetup = provenance && /^setup-[a-f0-9-]{36}$/.test(reverse.split(path.sep)[0]) && !reverse.startsWith('..');
     if (!managedSetup && ((!relative.startsWith('..') && !path.isAbsolute(relative)) || (!reverse.startsWith('..') && !path.isAbsolute(reverse)))) throw new Error('Motor kaynağı uygulamanın veri klasörüyle iç içe olamaz.');
     const originalRuntime = await findRuntime(source);
@@ -155,10 +157,11 @@ export class Engine {
       log('Wine kişisel kopyası hazırlanıyor. Orijinal kurulum korunuyor.\n');
       const copy = path.join(dir, 'runtime');
       await fs.cp(source, copy, { recursive: true, verbatimSymlinks: true, force: false, errorOnExist: true });
+      const canonicalCopy = await fs.realpath(copy);
       const runtime = await findRuntime(copy);
       for (const dirName of ['bin', 'lib/wine/x86_64-unix', 'lib/wine/x86_64-windows']) {
         const real = await fs.realpath(path.join(runtime.root, dirName));
-        const rel = path.relative(copy, real);
+        const rel = path.relative(canonicalCopy, real);
         if (rel.startsWith('..') || path.isAbsolute(rel)) throw new Error('Wine paketi dış klasöre bağlı. Kendi içinde tam paket gerekiyor.');
       }
       const version = await this.runner(runtime.binary, ['--version'], { timeout: 15000, log });
