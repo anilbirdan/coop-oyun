@@ -1,0 +1,15 @@
+{
+  "package": "Coop-Oyun-M5-0.3.0.zip",
+  "sourceHash": "a4779df8702f5fb11bff24562274dfec0d4a630ca038cf99b880dc9e14ba340c",
+  "bytes": 37049583,
+  "sha256": "e574b221d694c2c8e9c93beb57ef92e56a02f1f55f97b8dcdd2cf8aa176de846",
+  "node": "darwin-arm64, Mach-O header checked",
+  "zipIntegrityVerified": true,
+  "unixExecutablePermissionsVerified": true,
+  "macExecutionVerified": true,
+  "macOS": "15.7.9",
+  "macExecutionTest": "https://github.com/anilbirdan/coop-oyun/actions/runs/39674845980",
+  "finderClickVerified": false,
+  "gameVerified": false,
+  "coOpVerified": false
+}

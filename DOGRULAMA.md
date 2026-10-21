@@ -2,6 +2,10 @@
 
 21 Ekim 2026. Hedef M5; test makinesi Apple M1 (Virtual), macOS 15.7.9 ARM64. M5 veya oyun başarısı çıkarımı yapılmaz.
 
+## Dağıtılan ZIP'in doğrudan testi
+
+[39674845980](https://github.com/anilbirdan/coop-oyun/actions/runs/39674845980): dağıtılacak Coop-Oyun-M5-0.3.0.zip dosyasının kendisi taslak sürümden indirildi. Tam arşiv özeti, tüm uygulama kaynakları, paketli Node ikilisi/sürümü, ditto ile açma, macOS open ile başlatma, API ve normal kapanış GEÇTİ. Kaynak ağacından yeni bir paket üretilip onun yerine sınanmadı. ZIP 37049583 bayt; SHA256 e574b221d694c2c8e9c93beb57ef92e56a02f1f55f97b8dcdd2cf8aa176de846. Kanıt DAGITIM_DOGRULAMA.json ve PAKET_DOGRULAMA.json içinde. Bu doğrulamadan sonra ZIP değiştirilmedi.
+
 ## Son gerçek uygulama koşusu
 
 [39673633606](https://github.com/anilbirdan/coop-oyun/actions/runs/39673633606), kaynak b3dc40d639dea6875e12efbb373e184de1310e57: **GEÇTİ**.
