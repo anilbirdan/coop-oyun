@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>Coop — Birlikte oyna</title>
+  <link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#"><span class="brand-icon">c.</span><span>coop<span class="brand-dot">.</span></span></a>
+    <p class="eyebrow">SİZİN OYUN ALANINIZ</p>
+    <nav aria-label="Ana menü">
+      <button class="nav active" data-page="library"><span>▦</span> Oyunlarım</button>
+      <button class="nav" data-page="settings"><span>⚙</span> Kurulum</button>
+      <button class="nav" data-page="logs"><span>≡</span> İşlem kayıtları</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="small-orb"></span> Yerel ve size ait<p>Üyelik yok. Abonelik yok.</p><button id="quit" class="secondary">Uygulamayı kapat</button><span class="version">MAC TESTİ BEKLENİYOR · 0.2</span></div>
+  </aside>
+  <main>
+    <header><span id="breadcrumb">Kütüphane / Co-op</span><span class="device" id="device">Bilgisayar kontrol ediliyor</span></header>
+    <div id="notice" class="notice" role="status"></div>
+    <section id="library" class="page">
+      <div class="heading"><div><p class="eyebrow">AYNI DÜNYADA BULUŞUN</p><h1>Tek başına güzel.<br>Birlikte başka.</h1><p class="subtitle">Windows oyunlarınız, Mac’iniz ve arkadaşlarınız.<br>Oyun ortamlarınız tek bir yerde.</p></div><div class="hero-art" aria-hidden="true"><div class="orbit one"></div><div class="orbit two"></div><div class="orb big"></div><div class="orb little"></div><span>+1</span></div></div>
+      <div class="section-title"><h2>Ekibin oyunları <span>03</span></h2><span class="muted">Steam · Windows sürümleri</span></div>
+      <div class="games" id="games"></div>
+      <div class="footnote"><span>◇</span><p>Bu sürümde Mac ve arkadaş bağlantısı testleri bekleniyor. <strong>“Oyunu açıyor” ile “birlikte oynanıyor” ayrı ayrı kontrol edilir.</strong></p></div>
+    </section>
+    <section id="settings" class="page" hidden>
+      <p class="eyebrow">İLK ADIM</p><h1>Oyunlara yer açalım.</h1><p class="subtitle">Wine ve grafik dosyalarının kişisel kopyasını hazırlayın. Mevcut kurulumunuz korunur.</p>
+      <div class="panel"><h2>Ücretsiz çalıştırma motoru</h2><p>Gerekli dosyaları resmî kaynaklardan indirip sizin için hazırlayalım. Yaklaşık 186 MB indirme ve en az 3 GB boş alan gerekiyor. Oyunlar ayrıca indirilir.</p>
+        <button id="automaticSetup" class="primary">Ücretsiz motoru indir ve kur →</button>
+        <button id="doctor" class="secondary">Kurulumu kontrol et</button>
+        <p class="muted">Oyunlara uyarlanmış Wine 11.0 + DXMT 0.80. İndirilen dosyalar önceden kaydedilmiş SHA256 özetleriyle kontrol edilir. Apple Silicon Mac'te Wine için Rosetta gerekir; Apple'ın kurulum ve izin ekranlarını sizin tamamlamanız gerekir.</p>
+        <details><summary>Dosyaları kendim seçmek istiyorum</summary>
+        <div class="links"><a href="https://github.com/Sikarugir-App/Engines/releases/tag/v1.0" target="_blank" rel="noreferrer">Wine indirme sayfası ↗</a><a href="https://github.com/3Shain/dxmt/releases/tag/v0.80" target="_blank" rel="noreferrer">DXMT indirme sayfası ↗</a></div>
+        <label for="winePath">Wine uygulaması veya ana klasörü</label><div class="field-row"><input id="winePath" placeholder="İndirdiğiniz Wine uygulamasını seçin"><button class="secondary choose" data-field="winePath">Klasör seç</button></div>
+        <label for="dxmtPath">Açılmış DXMT klasörü</label><div class="field-row"><input id="dxmtPath" placeholder="DXMT dosyalarının bulunduğu klasör"><button class="secondary choose" data-field="dxmtPath">Klasör seç</button></div>
+        <p class="muted">64 bit dosyalar ve builtin/standart biçimi otomatik ayrılır. Elle seçilen dosyanın sürüm etiketi doğrulanamaz; dosya özetleri kaydedilir.</p>
+        <button id="importEngine" class="primary">Motor kopyasını hazırla →</button></details><p id="engineState" class="muted"></p>
+      </div>
+      <div class="panel compact"><h2>Ne gerekiyor?</h2><p>Apple Silicon Mac, Rosetta ve oyunların Windows Steam lisansı. Mac uygulama paketinde Node hazır gelir. Wine’ın ilk açılışında macOS izin isteyebilir. Uygulama güvenlik ayarlarınızı değiştirmez.</p><p>Kurulum internet gerektirir. Sonraki çok oyunculu bağlantı oyun ve Steam üzerinden yürür; burada parola veya oda kodu saklanmaz.</p><p id="dataDir" class="muted"></p></div>
+    </section>
+    <section id="logs" class="page" hidden><p class="eyebrow">NELER OLDU?</p><h1>İşlem kayıtları.</h1><p class="subtitle">Kayıtlar bu bilgisayarda kalır. Otomatik gönderilmez.</p><div id="jobs"></div><button id="export" class="secondary">Test kayıtlarını dosyaya indir</button></section>
+    <footer><span>coop. <span class="muted">Birlikte oynamak için.</span></span><span class="muted">Kendi oyunların. Kendi dünyan.</span></footer>
+  </main>
+  <dialog id="gameDialog"><button class="dialog-close" aria-label="Kapat">×</button><p class="eyebrow">OYUN ORTAMI</p><h2 id="gameTitle"></h2><p id="gameNote" class="muted"></p><div class="status-row" id="gameStatus"></div><div id="actions" class="actions"></div><h3>Arkadaşlarla oynama</h3><ol id="steps"></ol>
+    <details><summary>Gerçek deneme sonucunu kaydet</summary><p class="muted">Bu alan sizin bildiriminizdir; uygulama bağlantıyı otomatik ölçmez.</p><form id="testForm"><div class="test-fields"><label>Mac / bellek<input name="hardware" placeholder="Örn. M5, 16 GB" maxlength="2000"></label><label>macOS sürümü<input name="macOS" placeholder="Gerçek sürüm" maxlength="2000"></label><label>Oyun sürümü / yapı numarası<input name="gameBuild" placeholder="Steam’de görünen sürüm" maxlength="2000"></label></div><div id="testSelects"></div><label>Notlar<textarea name="notes" maxlength="2000" placeholder="Bağlantı hatası, süre, ayarlar…"></textarea></label><button type="submit" class="secondary">Deneme sonucunu kaydet</button><p id="testResult" role="status"></p></form></details>
+    <a id="gameSource" target="_blank" rel="noreferrer">Uyumluluk kaynağını aç ↗</a>
+  </dialog>
+</body>
+</html>

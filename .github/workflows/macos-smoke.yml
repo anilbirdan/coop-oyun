@@ -1,0 +1,36 @@
+name: Mac ARM64 temel calistirma testi
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: coop-macos-smoke
+  cancel-in-progress: false
+jobs:
+  mac-smoke:
+    # Standard public-repository runner only: do not incur private-runner charges.
+    if: github.event.repository.private == false
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Ortami dogrula
+        run: |
+          test "$(uname -m)" = arm64
+          node --version
+          sw_vers -productVersion
+          /usr/bin/arch -x86_64 /usr/bin/true
+      - name: Yazilim kontrolleri
+        run: node --test
+      - name: Gercek Wine kurulumu ve paket testi
+        run: node scripts/cloud-mac-smoke.mjs
+      - name: Sonucu ozetle
+        if: always()
+        run: |
+          if test -f .local/cloud-mac-report.md; then
+            cat .local/cloud-mac-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf 'Mac test betigi calisamadi. Oyun ve co-op dogrulanmadi.\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
