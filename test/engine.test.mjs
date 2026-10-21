@@ -14,7 +14,10 @@ async function fixture(t, options = {}) {
   const runner = async (binary, args, settings = {}) => {
     calls.push({ binary, args, ...settings });
     if (args.includes('--version')) return 'wine-11.0';
-    if (args[0] === 'wineboot') await fs.mkdir(path.join(settings.env.WINEPREFIX, 'drive_c/windows/system32'), { recursive: true });
+    if (args[0] === 'wineboot') {
+      assert.equal((await fs.stat(settings.env.WINEPREFIX)).isDirectory(),true,'Wine prefix must exist before boot');
+      await fs.mkdir(path.join(settings.env.WINEPREFIX,'drive_c/windows/system32'),{recursive:true});
+    }
     if (args.includes('/S')) {
       const steam = path.join(settings.env.WINEPREFIX, 'drive_c/Program Files (x86)/Steam');
       await fs.mkdir(steam, { recursive: true }); await fs.writeFile(path.join(steam, 'steam.exe'), 'fake-steam');
