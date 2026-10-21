@@ -15,7 +15,7 @@ const version=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8'
 const report={at:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,coOpVerified:false,finderLaunchVerified:false,launchServicesVerified:false};
 const unpacked=path.join(local,'cloud-unpacked');
 const bundle=path.join(unpacked,'Coop Oyun.app');
-let engine; let app;
+let engine; let app; let wineFailure;
 async function step(name,operation){
   const result={name,status:'running'}; report.steps.push(result);
   console.log('STEP '+name);
@@ -41,16 +41,17 @@ try{
       const runtime=await engine.engineFor();
       const prefix=path.join(local,'loader-diagnostic');
       await fs.mkdir(prefix,{recursive:true});
-      const env={...process.env,...engine.libraryEnvironment(runtime),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'err+all,warn+all,trace+process,trace+module',WINELOADER:runtime.binary,WINESERVER:path.join(runtime.root,'bin/wineserver'),WINEDLLPATH:['x86_64-unix','x86_64-windows','i386-windows'].map(name=>path.join(runtime.root,'lib/wine',name)).join(':')};
+      const env={...process.env,...engine.libraryEnvironment(runtime),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'+all',WINELOADER:runtime.binary,WINESERVER:path.join(runtime.root,'bin/wineserver'),WINEDLLPATH:['x86_64-unix','x86_64-windows','i386-windows'].map(name=>path.join(runtime.root,'lib/wine',name)).join(':')};
       console.log('LOADER_DIAGNOSTIC explicit loader/server/DLL paths');
-      try{await runProcess(runtime.binary,['wineboot','-i'],{env,timeout:90000,maxOutput:24000,log:message=>process.stdout.write(message)});console.log('LOADER_DIAGNOSTIC cmd='+await runProcess(runtime.binary,['cmd','/c','ver'],{env,timeout:30000}));}
+      let tail='';
+      try{await runProcess(runtime.binary,['wineboot','-i'],{env,timeout:90000,maxOutput:24000,log:message=>{tail=(tail+message).slice(-24000);}});console.log('LOADER_DIAGNOSTIC cmd='+await runProcess(runtime.binary,['cmd','/c','ver'],{env,timeout:30000}));}
       catch(error){console.error('LOADER_DIAGNOSTIC '+error.message);}
-      finally{await runProcess(env.WINESERVER,['-k'],{env,timeout:15000}).catch(()=>{});}
+      finally{console.log('LOADER_TRACE_TAIL\n'+tail);await runProcess(env.WINESERVER,['-k'],{env,timeout:15000}).catch(()=>{});}
       throw original;
     }
     report.wineDiagnostic={...result,graphicsVerified:false,coOpVerified:false};
     if(!result.windows.trim())throw new Error('Windows surum komutu bos sonuc verdi.');
-  });
+  }).catch(error=>{wineFailure=error;});
   await engine.close();
   await step('Mac uygulama paketini uret',async()=>{
     await downloadVerified(releases.node,path.join(local,'vendor'),message=>process.stdout.write(message));
@@ -107,6 +108,7 @@ try{
     if(!quit.ok)throw new Error('Mac uygulama kabugu kapanamadi.');
     report.launchServicesVerified=true;
   });
+  if(wineFailure)throw wineFailure;
 }catch(error){report.error=error.message;process.exitCode=1;console.error(error.message);}
 finally{
   if(app&&app.exitCode===null)app.kill('SIGTERM');
