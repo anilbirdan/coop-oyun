@@ -289,9 +289,9 @@ export class Engine {
     catch { throw new Error('Intel uyumluluğu (Rosetta) başlatılamadı. Apple’ın Rosetta kurulumunu tamamladıktan sonra yeniden deneyin.'); }
     const prefix = inside(this.dataDir,'diagnostics',engine.record.id);
     await fs.mkdir(prefix,{recursive:true});
-    const env={...process.env,...this.libraryEnvironment(engine),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'-all'};
+    const env={...process.env,...this.libraryEnvironment(engine),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'err+all,warn+all'};
     log('Ayrı denetim ortamında Windows komutu deneniyor.\n');
-    await this.runner(engine.binary,['wineboot','-i'],{env,log,timeout:120000});
+    await this.runner(engine.binary,['wineboot','-i'],{env,log,timeout:120000}).catch(error=>{throw new Error('Windows ortamı hazırlanamadı (wineboot): '+error.message);});
     const windows = await this.runner(engine.binary,['cmd','/c','ver'],{env,log,timeout:30000});
     await this.runner(path.join(engine.root,'bin/wineserver'),['-k'],{env,timeout:15000});
     const result = {at:new Date().toISOString(),engineId:engine.record.id,macOS,chip,memoryGB:Math.round(os.totalmem()/1024**3),windows,wineCommandPassed:true,graphicsVerified:false,coOpVerified:false};
