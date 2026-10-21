@@ -42,7 +42,10 @@ export function runProcess(binary, args, { env = process.env, log, timeout = 120
     child.once('close', (code, signal) => {
       clearTimeout(timer);
       if (timedOut) reject(new Error('İşlem süresi doldu. Hata kaydını kontrol edin.'));
-      else if (code !== 0) reject(new Error(`Program hata verdi (${code ?? signal}). ${output.slice(-1200)}`));
+      else if (code !== 0) {
+        const error=new Error(`Program hata verdi (${code ?? signal}). ${output.slice(-1200)}`);
+        error.exitCode=code;error.output=output;error.signal=signal;reject(error);
+      }
       else resolve(output.trim());
     });
   });
@@ -276,8 +279,18 @@ export class Engine {
     if (!await exists(path.join(this.prefix(id), 'coop.json'))) throw new Error('Bu oyun için ortam henüz hazırlanmadı.');
     const engine = await this.engineFor(id);
     // WINEPREFIX scopes wineserver -k to this game, never all Wine installations.
-    await this.runner(path.join(engine.root, 'bin/wineserver'), ['-k'], { env:this.environment(id, engine), log, timeout:15000 });
+    await this.stopServer(engine,this.environment(id,engine),log);
     log('Bu oyunun Steam ve oyun ortamına kapatma isteği gönderildi. Kaydedilmemiş ilerleme kaybolabilir.\n');
+  }
+  async stopServer(engine,env,log){
+    const binary=path.join(engine.root,'bin/wineserver');
+    try{await this.runner(binary,['-k'],{env,log,timeout:15000});}
+    catch(error){
+      if(error.exitCode!==1||error.output?.trim())throw error;
+      // Wine returns 1 when no server owns this prefix. Confirm it has exited;
+      // a live server that could not be killed still fails the bounded wait.
+      await this.runner(binary,['-w'],{env,log,timeout:15000});
+    }
   }
   async diagnose(log) {
     this.requireMac();
@@ -289,11 +302,13 @@ export class Engine {
     catch { throw new Error('Intel uyumluluğu (Rosetta) başlatılamadı. Apple’ın Rosetta kurulumunu tamamladıktan sonra yeniden deneyin.'); }
     const prefix = inside(this.dataDir,'diagnostics',engine.record.id);
     await fs.mkdir(prefix,{recursive:true});
-    const env={...process.env,...this.libraryEnvironment(engine),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'err+all,warn+all'};
+    const env={...process.env,...this.libraryEnvironment(engine),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'err+all',MVK_CONFIG_LOG_LEVEL:'0'};
     log('Ayrı denetim ortamında Windows komutu deneniyor.\n');
     await this.runner(engine.binary,['wineboot','-i'],{env,log,timeout:120000}).catch(error=>{throw new Error('Windows ortamı hazırlanamadı (wineboot): '+error.message);});
-    const windows = await this.runner(engine.binary,['cmd','/c','ver'],{env,log,timeout:30000});
-    await this.runner(path.join(engine.root,'bin/wineserver'),['-k'],{env,timeout:15000});
+    const output=await this.runner(engine.binary,['cmd','/c','ver'],{env,log,timeout:30000});
+    const windows=output.match(/Microsoft Windows[^\r\n]*/)?.[0];
+    if(!windows)throw new Error('Windows sürüm komutu beklenen yanıtı vermedi.');
+    await this.stopServer(engine,env);
     const result = {at:new Date().toISOString(),engineId:engine.record.id,macOS,chip,memoryGB:Math.round(os.totalmem()/1024**3),windows,wineCommandPassed:true,graphicsVerified:false,coOpVerified:false};
     await writeJSON(inside(this.dataDir,'diagnostics.json'),result);
     log('Windows komutu tamamlandı. Grafik, Steam girişi ve arkadaş bağlantısı bu denetimle doğrulanmaz.\n');

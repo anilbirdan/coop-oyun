@@ -12,7 +12,7 @@ import {readJSON,writeJSON} from '../src/storage.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const local=path.join(root,'.local');
 const version=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8')).version;
-const report={at:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,coOpVerified:false,finderLaunchVerified:false,launchServicesVerified:false};
+const report={at:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,basicD3D11FrameVerified:false,coOpVerified:false,steamLoginVerified:false,finderLaunchVerified:false,launchServicesVerified:false};
 const unpacked=path.join(local,'cloud-unpacked');
 const bundle=path.join(unpacked,'Coop Oyun.app');
 let engine; let app; let wineFailure;
@@ -43,6 +43,29 @@ try{
     report.wineDiagnostic={...result,graphicsVerified:false,coOpVerified:false};
     if(!result.windows.trim())throw new Error('Windows surum komutu bos sonuc verdi.');
   }).catch(error=>{wineFailure=error;});
+  if(!wineFailure){
+    await step('Kurulan motorla gercek Direct3D 11',async()=>{
+      let installed;
+      try{
+        await engine.prepare('palworld',message=>process.stdout.write(message));
+        installed=await engine.engineFor('palworld');
+        const probe=path.join(local,'installed-d3d11-probe.exe');
+        await runProcess('x86_64-w64-mingw32-gcc',[path.join(root,'scripts/d3d11-probe.c'),'-O2','-o',probe,'-luser32','-ldxguid'],{timeout:60000});
+        const output=await runProcess(installed.binary,[probe],{env:{...engine.environment('palworld',installed),WINEDEBUG:'err+all',MVK_CONFIG_LOG_LEVEL:'0'},timeout:90000,maxOutput:8000,log:message=>process.stdout.write(message)});
+        if(!output.includes('D3D11_PROBE resize_destroy_reopen_passed'))throw new Error('Kurulan motorda Direct3D goruntu ve pencere denetimi gecmedi.');
+        report.basicD3D11FrameVerified=true;
+      }finally{if(installed)await engine.stopServer(installed,engine.environment('palworld',installed)).catch(()=>{});}
+    }).catch(error=>{wineFailure=error;});
+  }else report.steps.push({name:'Kurulan motorla gercek Direct3D 11',status:'skipped'});
+  if(!wineFailure){
+    await step('Palworld ortami ve resmi Steam kurulumu',async()=>{
+      try{
+        await engine.installSteam('palworld',message=>process.stdout.write(message));
+        if(!await engine.steamPath('palworld'))throw new Error('Steam exe dosyasi kurulumdan sonra bulunamadi.');
+        report.steamFilesInstalled=true;
+      }finally{await engine.stop('palworld',message=>process.stdout.write(message)).catch(()=>{});}
+    }).catch(error=>{wineFailure=error;});
+  }else report.steps.push({name:'Palworld ortami ve resmi Steam kurulumu',status:'skipped'});
   await engine.close();
   await step('Mac uygulama paketini uret',async()=>{
     await downloadVerified(releases.node,path.join(local,'vendor'),message=>process.stdout.write(message));
@@ -105,7 +128,7 @@ finally{
   if(app&&app.exitCode===null)app.kill('SIGTERM');
   await engine?.close();
   await fs.mkdir(local,{recursive:true});
-  report.passed=report.steps.length===6&&report.steps.every(step=>step.status==='passed');
+  report.passed=report.steps.length===8&&report.steps.every(step=>step.status==='passed');
   await writeJSON(path.join(local,'cloud-mac-report.json'),report);
   const markdown=['# Bulut Mac temel test sonucu','',...report.steps.map(step=>`- ${step.name}: ${step.status}${step.error?' — '+step.error:''}`),'','Oyun acilisi, grafik, Steam girisi ve co-op bu testle dogrulanmaz. Finder ile acilis da sinanmadi.',''];
   await fs.writeFile(path.join(local,'cloud-mac-report.md'),markdown.join('\n'));

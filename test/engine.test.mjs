@@ -14,6 +14,7 @@ async function fixture(t, options = {}) {
   const runner = async (binary, args, settings = {}) => {
     calls.push({ binary, args, ...settings });
     if (args.includes('--version')) return 'wine-11.18';
+    if (args[0]==='cmd') return 'Microsoft Windows 10.0.19045';
     if (args[0] === 'wineboot') {
       assert.equal((await fs.stat(settings.env.WINEPREFIX)).isDirectory(),true,'Wine prefix must exist before boot');
       await fs.mkdir(path.join(settings.env.WINEPREFIX,'drive_c/windows/system32'),{recursive:true});
@@ -130,7 +131,7 @@ test('real process runner preserves argument boundaries and returns nonzero erro
   const value = 'space path; $(not-a-command) & "quoted"';
   const output = await runProcess(process.execPath, ['-e', 'process.stdout.write(process.argv[1])', value]);
   assert.equal(output, value);
-  await assert.rejects(() => runProcess(process.execPath, ['-e', 'process.stderr.write("failure"); process.exit(3)']), /3.*failure/);
+  await assert.rejects(() => runProcess(process.execPath, ['-e', 'process.stderr.write("failure"); process.exit(3)']),error=>error.exitCode===3&&error.output==='failure'&&/3.*failure/.test(error.message));
 });
 
 test('Wine layout fails closed when runtime support files are absent', async t => {
@@ -179,4 +180,18 @@ test('system diagnosis records command result separately from graphics and coop'
   assert.equal(result.graphicsVerified,false);
   assert.equal(result.coOpVerified,false);
   assert.ok(f.calls.filter(call=>call.env?.WINEPREFIX?.includes('diagnostics')).every(call=>call.env.WINEPREFIX!==f.engine.prefix('palworld')));
+});
+
+test('already exited Wine server is confirmed with wait; actual wait failures remain errors',async t=>{
+  const f=await fixture(t);await f.engine.importEngine(f);
+  const original=f.engine.runner;
+  let waitFails=false;
+  f.engine.runner=async(binary,args,options)=>{
+    if(args[0]==='-k'){const error=new Error('no server');error.exitCode=1;error.output='';throw error;}
+    if(args[0]==='-w'&&waitFails)throw new Error('server wait failed');
+    return original(binary,args,options);
+  };
+  assert.equal((await f.engine.diagnose(()=>{})).wineCommandPassed,true);
+  assert.ok(f.calls.some(call=>call.args[0]==='-w'));
+  waitFails=true;await assert.rejects(()=>f.engine.diagnose(()=>{}),/server wait failed/);
 });

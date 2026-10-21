@@ -1,26 +1,23 @@
 # Açık kaynak parçalarımız
 
-## Doğrudan kullandığımız
+## Uygulamanın kullandığı
 
-- **Wine'ın Sikarugir için hazırlanmış 11.0 revision 1 Mac ikilisi.** Windows programlarının çalıştırılmasını bu hazır motor yapar. Motoru burada yeniden yazmadık veya kaynak kodundan derlemedik. Resmî paket kullanıcı bilgisayarına indirilir; uygulamanın kaynak deposuna motor ikilisi eklenmez. https://github.com/Sikarugir-App/Engines ve https://github.com/Sikarugir-App/wine
-- **DXMT 0.80 builtin hazır ikilisi.** DirectX 10/11 grafik çevirisi. Resmî paket indirilir ve Wine ortamına yerleştirilir. Kaynağı burada derlemedik; Mac sürücüsüyle bağlantısını incelemek için kaynak dosyasını okuduk. https://github.com/3Shain/dxmt
-- **Gcenx Wine macOS 11.18 paketindeki yardımcı kütüphaneler.** Sikarugir motorunun ihtiyaç duyduğu libinotify ve diğer genel paylaşımlı kütüphaneler bu doğrulanmış paketten alınır. Bu paketin Wine sürücüsü veya motoru, seçili Sikarugir motorunun yerine geçirilmez. https://github.com/Gcenx/macOS_Wine_builds
-- **Node.js 22.23.3 resmî ARM64 Mac ikilisi.** Bizim arayüz/kurulum/başlatma kodumuzu çalıştırır. Mac uygulama paketinde lisans metniyle birlikte bulunur. https://nodejs.org/
+- **Wine 11.18:** Windows programlarını çalıştıran temel motor. Gcenx'in [resmî Mac paketi](https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.18) indirilir. Wine'ın tamamını burada derlemedik.
+- **Wine Mac grafik sürücüsü:** Aynı sürümün [resmî Wine kaynak kaydından](https://github.com/wine-mirror/wine/tree/7b3fff76fa5178f6ce0141b2c776afa2a822f101) bu projede derlendi. DXMT bağlantıları ve yeni pencere yüzeyi düzeni scripts/wine-dxmt-compat.c ile uyarlandı. Birleşik sürücü LGPL-2.1-or-later kapsamındadır. İkili, lisans, tam değiştirilmiş Wine kaynakları ve yapım yönergeleri [aynı sürümde](https://github.com/anilbirdan/coop-oyun/releases/tag/wine-driver-11.18-coop1) bulunur.
+- **DXMT 0.80:** DirectX 10/11 grafik çevirisi. [Resmî hazır ikilisi](https://github.com/3Shain/dxmt/releases/tag/v0.80) indirilir; burada kaynak kodundan derlenmedi.
+- **Node.js 22.23.3 ARM64 Mac:** Arayüz ve kurulum kodumuzu çalıştırır. [Resmî ikili](https://nodejs.org/dist/v22.23.3/) Mac uygulamasında lisansıyla birlikte gelir.
 
-Kesin paket adresleri, boyutları ve SHA256 değerleri src/releases.mjs dosyasındadır. Lisans ve kullanım koşulları ilgili projelere aittir.
+Paket adresleri, sürümleri, boyutları ve sabit SHA256 özetleri src/releases.mjs içindedir. Sürücü yalnız sınandığı Wine arşiviyle eşleşirse kurulur. Wine, DXMT ve Steam kullanıcı bilgisayarına indirilir; uygulama ZIP'ine oyun veya Steam hesabı eklenmez.
 
-## Kopyalamadığımız
+## Kopyalamadığımız ve elenen aday
 
-- **Whisky:** Kaynak ve bakım durumunu inceledik; SwiftUI arayüzünü, WhiskyKit'i veya WhiskyWine'ı projeye kopyalamadık. Uygulama Whisky'nin değiştirilmiş sürümü değil. https://github.com/Whisky-App/Whisky
-- **CrossOver uygulaması ve arayüzü:** Kodunu kopyalamadık. Wine ekosistemindeki katkıları, ücretsiz Wine türevlerinin geçmişinde bulunabilir; bunu bağımsız sıfırdan motor yazmışız gibi sunmuyoruz.
-- **Apple D3DMetal:** Paketlenmedi veya kurulmadı. Mevcut grafik yolumuz DXMT.
+- **Whisky:** SwiftUI arayüzü, WhiskyKit veya WhiskyWine projeye kopyalanmadı. Uygulama Whisky'nin değiştirilmiş sürümü değil. [Whisky kaynağı](https://github.com/Whisky-App/Whisky).
+- **CrossOver uygulaması ve arayüzü:** Kodları kopyalanmadı. Wine ekosistemindeki katkıları yok sayıp Windows motorunu sıfırdan yazdığımızı iddia etmiyoruz.
+- **Sikarugir:** Hazır Wine motoru geliştirme sırasında denendi; gerçek bulut Mac'te Windows ortamını açamadığı için mevcut otomatik kurulumdan çıkarıldı. Artık yardımcı kütüphane paketiyle birleştirilen Sikarugir motoru kullanılmıyor.
+- **Apple D3DMetal:** Paketlenmedi veya kurulmadı. Grafik yolumuz DXMT; Mac'in kendi Metal sistem arayüzünü kullanır.
 
-## Burada yazılan
+## Burada yazılan ve doğrulama sınırı
 
-Türkçe yerel arayüz, motor indirme/doğrulama/kurulum yönetimi, oyun başına ayrı ortam, Steam komutları, hata ve test kayıtları, Mac paketleme ve bulut test betikleri. Bunlar Wine'ın yerini almaz; hazır açık kaynak motorları yönetir.
+Türkçe yerel arayüz, doğrulanmış motor indirme/kurulum yönetimi, oyun başına ayrı ortam, Steam komutları, hata/test kayıtları, Mac paketleme ve bulut test betikleri burada yazıldı. Bunlar Wine'ın yerini almaz; açık kaynak motorları yönetir.
 
-## Kaynaktan sürücü derleme denemesi
-
-Sikarugir paketinin gerçek Mac'te Windows ortamını açamaması üzerine ayrı bir deneme başladı. Çalışan standart Wine 11.18 ikilisiyle aynı [resmî Wine kaynak kaydından](https://github.com/wine-mirror/wine/tree/7b3fff76fa5178f6ce0141b2c776afa2a822f101) yalnız Mac grafik sürücüsü bulut Mac'te derlendi. İlk sürücüyle Windows komutu geçti; bu DXMT grafik başarısı değildir.
-
-DXMT 0.80'in beklediği eski pencere veri düzeni için scripts/wine-dxmt-compat.c eklendi; birleşik sürücü LGPL-2.1-or-later koşullarında tutulur. Derleme ve yama betiği scripts/build-wine-driver.mjs içinde, sabit kaynak kaydı ve resmî ikili özetiyle kayıtlıdır. Küçük gerçek Direct3D görüntü sınaması scripts/d3d11-probe.c içindedir. Uyarlamanın ve görüntü sınamasının sonuçları henüz bekleniyor. Uygulamanın otomatik motoru bu adayla değiştirilmedi; Wine'ın tamamını burada derledik denmez.
+Gerçek bulut Mac'te Windows komutu, küçük bir Direct3D 11 görüntüsünün renk geri okuması ve sunulması, pencere boyutlandırma ve kapatıp yeniden açma geçti. Bu, Palworld/Bellwright/Raft açılışı, performansı veya arkadaş odası testi değildir. Güncel kanıt DOGRULAMA.md içindedir.
