@@ -25,9 +25,8 @@ jobs:
         run: node scripts/build-wine-driver.mjs prepare
       - name: Yalniz Mac grafik surucusunu derle
         run: |
-          if brew --prefix bison >/dev/null 2>&1; then
-            export PATH="$(brew --prefix bison)/bin:$PATH"
-          fi
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install bison
+          export PATH="$(brew --prefix bison)/bin:$PATH"
           mkdir -p .local/wine-build
           cd .local/wine-build
           CC="clang -arch x86_64" CXX="clang++ -arch x86_64" ../wine-source/configure --build=x86_64-apple-darwin --host=x86_64-apple-darwin --enable-win64 --without-mingw --disable-tests --without-x --without-wayland --without-gstreamer --without-vulkan --without-cups --without-freetype --without-fontconfig --without-gettext
