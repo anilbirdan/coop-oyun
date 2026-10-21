@@ -13,7 +13,7 @@ async function fixture(t, options = {}) {
   const dataDir = path.join(dir, 'data');
   const runner = async (binary, args, settings = {}) => {
     calls.push({ binary, args, ...settings });
-    if (args.includes('--version')) return 'wine-11.0';
+    if (args.includes('--version')) return 'wine-11.18';
     if (args[0] === 'wineboot') {
       assert.equal((await fs.stat(settings.env.WINEPREFIX)).isDirectory(),true,'Wine prefix must exist before boot');
       await fs.mkdir(path.join(settings.env.WINEPREFIX,'drive_c/windows/system32'),{recursive:true});
@@ -50,7 +50,7 @@ test('Windows blocks all real Wine actions before any process runs', async t => 
 test('engine import uses private copy, hashes DXMT, preserves source and pins Wine', async t => {
   const f = await fixture(t);
   const record = await f.engine.importEngine(f);
-  assert.equal(record.version, 'wine-11.0');
+  assert.equal(record.version, 'wine-11.18');
   assert.equal(record.gameVerified, false);
   assert.equal(record.hashes['d3d11.dll'].length, 64);
   assert.equal(await fs.readFile(path.join(f.base, 'bin/wine'), 'utf8'), 'original-wine');
@@ -62,7 +62,7 @@ test('incompatible version fails without replacing previous engine', async t => 
   const f = await fixture(t);
   const original = await f.engine.importEngine(f);
   f.engine.runner = async () => 'wine-7.7';
-  await assert.rejects(() => f.engine.importEngine(f), /11.0 motorunu/);
+  await assert.rejects(() => f.engine.importEngine(f), /11.18 motorunu/);
   const settings = await readJSON(path.join(f.engine.dataDir, 'settings.json'));
   assert.equal(settings.engineId, original.id);
   assert.equal((await fs.readdir(path.join(f.engine.dataDir, 'engines'))).length, 1);

@@ -6,6 +6,7 @@ import { pipeline } from 'node:stream/promises';
 import { randomUUID } from 'node:crypto';
 import { releases } from './releases.mjs';
 import { exists, hashFile, inside } from './storage.mjs';
+import {applyVerifiedDriver} from './driver.mjs';
 
 const hosts = new Set(['github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com', 'nodejs.org']);
 export async function officialFetch(url, { fetcher = fetch, signal } = {}) {
@@ -65,24 +66,17 @@ export async function installOfficialEngine(engine, log, { fetcher = fetch } = {
   await fs.mkdir(work, { recursive: true });
   try {
     const folders = {};
-    for (const name of ['wine','dxmt','libraries']) {
+    for (const name of ['wine','dxmt','driver']) {
       const asset = releases[name]; log(asset.file + ' indiriliyor.\n');
       const archive = await downloadVerified(asset, cache, log, fetcher);
       const list = await engine.runner('/usr/bin/tar', ['-tf', archive], { timeout:120000, maxOutput:4000000, requireFullOutput:true });
       validateArchiveListing(list, asset.folder);
       const unpack = inside(work, name); await fs.mkdir(unpack);
       log(asset.file + ' açılıyor.\n');
-      if(name==='libraries'){
-        const prefix=asset.folder+'/Contents/Resources/wine/lib/';
-        const files=list.split(/\r?\n/).filter(item=>item.startsWith(prefix)&&!item.slice(prefix.length).includes('/')&&item.endsWith('.dylib'));
-        if(!files.some(file=>file.endsWith('/libinotify.0.dylib')))throw new Error('Destek paketinde libinotify kütüphanesi bulunamadı.');
-        await engine.runner('/usr/bin/tar',['-xf',archive,'-C',unpack,...files],{timeout:300000,log});
-        folders[name]=inside(unpack,prefix);
-      }else{
-        await engine.runner('/usr/bin/tar',['-xf',archive,'-C',unpack],{timeout:300000,log});
-        folders[name]=inside(unpack,asset.folder);
-      }
+      await engine.runner('/usr/bin/tar',['-xf',archive,'-C',unpack],{timeout:300000,log});
+      folders[name]=inside(unpack,asset.folder);
     }
-    return await engine.importEngine({winePath:folders.wine,dxmtPath:folders.dxmt,librariesPath:folders.libraries,provenance:{wine:releases.wine.sha256,dxmt:releases.dxmt.sha256,libraries:releases.libraries.sha256}},log);
+    await applyVerifiedDriver(folders.wine,folders.driver,releases.driver,releases.wine);
+    return await engine.importEngine({winePath:folders.wine,dxmtPath:folders.dxmt,provenance:{wine:releases.wine.sha256,dxmt:releases.dxmt.sha256,driver:releases.driver.sha256,driverSource:releases.driver.sourceCommit}},log);
   } finally { await fs.rm(work, { recursive:true, force:true }); }
 }

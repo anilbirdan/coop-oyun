@@ -14,7 +14,7 @@
       <button class="nav" data-page="settings"><span>⚙</span> Kurulum</button>
       <button class="nav" data-page="logs"><span>≡</span> İşlem kayıtları</button>
     </nav>
-    <div class="sidebar-bottom"><span class="small-orb"></span> Yerel ve size ait<p>Üyelik yok. Abonelik yok.</p><button id="quit" class="secondary">Uygulamayı kapat</button><span class="version">OYUN TESTİ BEKLENİYOR · 0.2.1</span></div>
+    <div class="sidebar-bottom"><span class="small-orb"></span> Yerel ve size ait<p>Üyelik yok. Abonelik yok.</p><button id="quit" class="secondary">Uygulamayı kapat</button><span class="version">OYUN TESTİ BEKLENİYOR · 0.3.0</span></div>
   </aside>
   <main>
     <header><span id="breadcrumb">Kütüphane / Co-op</span><span class="device" id="device">Bilgisayar kontrol ediliyor</span></header>
@@ -27,12 +27,12 @@
     </section>
     <section id="settings" class="page" hidden>
       <p class="eyebrow">İLK ADIM</p><h1>Oyunlara yer açalım.</h1><p class="subtitle">Wine ve grafik dosyalarının kişisel kopyasını hazırlayın. Mevcut kurulumunuz korunur.</p>
-      <div class="panel"><h2>Ücretsiz çalıştırma motoru</h2><p>Gerekli dosyaları resmî kaynaklardan indirip sizin için hazırlayalım. Yaklaşık 377 MB indirme ve en az 4 GB boş alan gerekiyor. Oyunlar ayrıca indirilir.</p>
+      <div class="panel"><h2>Ücretsiz çalıştırma motoru</h2><p>Gerekli dosyaları resmî kaynaklardan indirip sizin için hazırlayalım. Yaklaşık 210 MB indirme ve en az 4 GB boş alan gerekiyor. Oyunlar ayrıca indirilir.</p>
         <button id="automaticSetup" class="primary">Ücretsiz motoru indir ve kur →</button>
         <button id="doctor" class="secondary">Kurulumu kontrol et</button>
-        <p class="muted">Oyunlara uyarlanmış Wine 11.0 + DXMT 0.80. İndirilen dosyalar önceden kaydedilmiş SHA256 özetleriyle kontrol edilir. Apple Silicon Mac'te Wine için Rosetta gerekir; Apple'ın kurulum ve izin ekranlarını sizin tamamlamanız gerekir.</p>
+        <p class="muted">Oyunlara uyarlanmış Wine 11.18 + DXMT 0.80. İndirilen dosyaların bütünlüğü kontrol edilir. Apple Silicon Mac'te Wine için Rosetta gerekir; Apple'ın kurulum ve izin ekranlarını sizin tamamlamanız gerekir.</p>
         <details><summary>Dosyaları kendim seçmek istiyorum</summary>
-        <div class="links"><a href="https://github.com/Sikarugir-App/Engines/releases/tag/v1.0" target="_blank" rel="noreferrer">Wine indirme sayfası ↗</a><a href="https://github.com/3Shain/dxmt/releases/tag/v0.80" target="_blank" rel="noreferrer">DXMT indirme sayfası ↗</a></div>
+        <div class="links"><a href="https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.18" target="_blank" rel="noreferrer">Wine indirme sayfası ↗</a><a href="https://github.com/3Shain/dxmt/releases/tag/v0.80" target="_blank" rel="noreferrer">DXMT indirme sayfası ↗</a></div>
         <label for="winePath">Wine uygulaması veya ana klasörü</label><div class="field-row"><input id="winePath" placeholder="İndirdiğiniz Wine uygulamasını seçin"><button class="secondary choose" data-field="winePath">Klasör seç</button></div>
         <label for="dxmtPath">Açılmış DXMT klasörü</label><div class="field-row"><input id="dxmtPath" placeholder="DXMT dosyalarının bulunduğu klasör"><button class="secondary choose" data-field="dxmtPath">Klasör seç</button></div>
         <p class="muted">64 bit dosyalar ve builtin/standart biçimi otomatik ayrılır. Elle seçilen dosyanın sürüm etiketi doğrulanamaz; dosya özetleri kaydedilir.</p>

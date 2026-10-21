@@ -53,7 +53,7 @@ if ! "$RESOURCES/node" "$RESOURCES/app/src/server.mjs" --bundle >> "$LOG_DIR/lau
 fi
 `;
 await fs.writeFile(path.join(contents, 'MacOS/CoopOyun'), launcher, {mode:0o755});
-await fs.writeFile(path.join(staging,'ONCE-OKU.txt'),`Coop Oyun ${version} — Apple Silicon Mac\n\nCoop Oyun uygulamasını Uygulamalar klasörüne taşıyıp açın.\nKurulum ekranında Ücretsiz motoru indir ve kur seçeneğini kullanın.\nNode ayrıca kurulmaz. Motor kurulumu yaklaşık 377 MB indirir.\nOyunlar için kendi Windows Steam lisansınız gerekir.\n\nBu paket imzalı/noter onaylı değildir. macOS ilk açılışı engelleyebilir.\nGüvenlik ayarlarını kapatmayın.\nOyun ve co-op testleri henüz yapılmadı.\n`);
+await fs.writeFile(path.join(staging,'ONCE-OKU.txt'),`Coop Oyun ${version} — Apple Silicon Mac\n\nCoop Oyun uygulamasını Uygulamalar klasörüne taşıyıp açın.\nKurulum ekranında Ücretsiz motoru indir ve kur seçeneğini kullanın.\nNode ayrıca kurulmaz. Motor kurulumu yaklaşık 210 MB indirir.\nOyunlar için kendi Windows Steam lisansınız gerekir.\n\nBu paket imzalı/noter onaylı değildir. macOS ilk açılışı engelleyebilir.\nGüvenlik ayarlarını kapatmayın.\nOyun ve co-op testleri henüz yapılmadı.\n`);
 const sourceFiles={};
 async function collect(folder){
   for(const entry of (await fs.readdir(path.join(resources,'app',folder),{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){

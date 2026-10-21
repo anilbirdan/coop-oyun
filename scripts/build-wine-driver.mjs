@@ -8,10 +8,10 @@ import {supportsDXMT} from '../src/macho.mjs';
 import {hashFile} from '../src/storage.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const local=path.join(root,'.local');
-const runtime=path.join(local,'driver-runtime',releases.libraries.folder,'Contents/Resources/wine');
+const runtime=path.join(local,'driver-runtime',releases.wine.folder,'Contents/Resources/wine');
 if(process.platform!=='darwin'||process.arch!=='arm64')throw new Error('Bu derleme gercek ARM64 Mac gerektirir.');
 if(process.argv[2]==='prepare'){
-  const archive=await downloadVerified(releases.libraries,path.join(local,'vendor'),message=>process.stdout.write(message));
+  const archive=await downloadVerified(releases.wine,path.join(local,'vendor'),message=>process.stdout.write(message));
   await fs.mkdir(path.join(local,'driver-runtime'),{recursive:true});
   await runProcess('/usr/bin/tar',['-xf',archive,'-C',path.join(local,'driver-runtime')],{timeout:180000});
   const headers={
@@ -54,7 +54,7 @@ if(process.argv[2]==='prepare'){
   await fs.copyFile(compiled,path.join(runtime,'lib/wine/x86_64-unix/winemac.so'));
   const prefix=path.join(local,'driver-prefix');await fs.mkdir(prefix,{recursive:true});
   const env={...process.env,DYLD_LIBRARY_PATH:path.join(runtime,'lib'),WINEPREFIX:prefix,WINEARCH:'win64',WINEDEBUG:'-all',MVK_CONFIG_LOG_LEVEL:'0'};
-  const report={source:'7b3fff76fa5178f6ce0141b2c776afa2a822f101',wineArchiveSha256:releases.libraries.sha256,driverSha256:await hashFile(compiled),dxmtExportsVerified:true,windowsCommandVerified:false,basicD3D11FrameVerified:false,gameVerified:false,coOpVerified:false};
+  const report={source:'7b3fff76fa5178f6ce0141b2c776afa2a822f101',wineArchiveSha256:releases.wine.sha256,driverSha256:await hashFile(compiled),dxmtExportsVerified:true,windowsCommandVerified:false,basicD3D11FrameVerified:false,gameVerified:false,coOpVerified:false};
   try{
     const windows=await runProcess(path.join(runtime,'bin/wine'),['cmd.exe','/c','ver'],{env,timeout:120000});
     if(!windows.includes('Microsoft Windows'))throw new Error('Windows komutu beklenen cevabi vermedi.');

@@ -43,7 +43,7 @@ Sonraki karşılaştırmalar:
 - [39535672877](https://github.com/anilbirdan/coop-oyun/actions/runs/39535672877): değiştirilmemiş Gcenx Wine 11.18 aynı ARM64 Mac üzerinde `Microsoft Windows 10.0.19045` yanıtını verdi. Sorun genel olarak bulut Mac'in Wine çalıştıramaması değildir. Yerel hata ayıklayıcı süre sınırında sonuç vermedi.
 - [39665320266](https://github.com/anilbirdan/coop-oyun/actions/runs/39665320266): WS12 özgün arşivi DXMT eklenmeden de başarısız. win64, wow64 ve fallback kütüphane yollarında aynı wineboot çıkış 1.
 - [39665840217](https://github.com/anilbirdan/coop-oyun/actions/runs/39665840217): resmî WS11 alternatifi de başarısız; DXMT dışa aktarımları da bulunmadı. Aday elendi.
-- Çalışan 11.18 sürümüyle aynı Wine kaynağından Mac grafik sürücüsünün DXMT bağlantılarını derleme denemesi başlatıldı. Başarı veya uygulamaya entegrasyon sonucu henüz yok.
+- [39670420803](https://github.com/anilbirdan/coop-oyun/actions/runs/39670420803), e4a8262: Wine 11.18 kaynağından derlenen, eski veri düzenini ve yeni client surface yaşam döngüsünü uyarlayan sürücüyle Windows komutu GEÇTİ. DXMT 0.80 gerçek Direct3D 11 aygıtı, pencere ve swapchain oluşturdu. Görüntü renkleri belleğe geri okundu: beklenen RGBA 64,128,191,255 eşleşti; Present GEÇTİ. Temel D3D11 görüntü doğrulaması, oyun/performans/co-op doğrulaması değildir. Sürücü SHA256: 11f1fd4bef90f5097d3e91ead5bce68a813387ee015191f0ed518b3b4a7a69e4. Uygulamanın otomatik kurulumuna entegrasyon henüz yapılmadı; boyutlandırma ve yeniden açma sınaması eklendi.
 
 ## Bekleyen gerçek kontroller
 

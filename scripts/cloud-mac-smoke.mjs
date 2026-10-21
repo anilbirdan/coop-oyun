@@ -8,7 +8,6 @@ import {Engine,runProcess} from '../src/engine.mjs';
 import {installOfficialEngine,downloadVerified} from '../src/installer.mjs';
 import {releases} from '../src/releases.mjs';
 import {readJSON,writeJSON} from '../src/storage.mjs';
-import {probeWine} from './probe-wine.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const local=path.join(root,'.local');
@@ -39,7 +38,6 @@ try{
     let result;
     try { result=await engine.diagnose(message=>process.stdout.write(message)); }
     catch(original){
-      report.wineProbes=await probeWine(engine,local);
       throw original;
     }
     report.wineDiagnostic={...result,graphicsVerified:false,coOpVerified:false};

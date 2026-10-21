@@ -2,11 +2,11 @@
 
 Mac için deneysel, Türkçe oyun başlatıcısı. Bellwright, **Palworld Windows/Steam sürümü** ve Raft kapsamda. Abonelik veya uygulama hesabı yok; oyun lisansları kullanıcıya ait olmalı.
 
-**Sürüm 0.2.1: Deneysel geliştirme sürümü. Bulut Mac'te uygulama paketinin açılışı geçti; Windows ortamının başlatılması şu anda başarısız. Oyun ve arkadaş bağlantısı doğrulanmadı.** Program, mevcut ücretsiz Wine ve DXMT motorunu yönetir. Paket imzalı/noter onaylı değildir. Kullanıma hazır oyun sürümü henüz yayımlanmadı.
+**Sürüm 0.3.0 hazırlanıyor.** Kaynaktan uyarlanan Wine sürücüsüyle bulut Mac üzerinde Windows komutu, gerçek Direct3D 11 görüntüsü, boyutlandırma ve kapatıp yeniden açma geçti. Uygulamanın otomatik kurulumuyla son doğrulama sürüyor. **Oyun, performans ve arkadaş bağlantısı henüz doğrulanmadı.** Paket imzalı/noter onaylı değildir.
 
 ## Açma
 
-1. `dist/Coop-Oyun-M5-0.2.1.zip` dosyasını Mac'te açın.
+1. `dist/Coop-Oyun-M5-0.3.0.zip` dosyasını Mac'te açın.
 2. **Coop Oyun.app** uygulamasını Uygulamalar klasörüne taşıyıp açın. Node programın içinde gelir; ayrıca kurulmaz. M serisi Mac içindir.
 3. Tarayıcıda yerel arayüz açılır. Programı tekrar açmak aynı pencereye bağlantı verir. Kapatmak için arayüzde **Uygulamayı kapat** seçeneğini kullanın. Oyunlar otomatik kapatılmaz; önce oyun içinden kaydedin.
 
@@ -18,11 +18,13 @@ Windows üzerinde `node src/server.mjs --preview` arayüzü açar; ekrandaki yer
 
 ## Mac'te ilk kurulum
 
-Kurulum ekranındaki **Ücretsiz motoru indir ve kur** düğmesini kullanın. Wine Sikarugir 11.0 revision 1, DXMT 0.80 builtin ve Gcenx Wine paketinden gereken destek kütüphaneleri resmî kaynaklardan indirilir; her arşivin boyutu ve sabit SHA256 özeti doğrulanır. Yaklaşık 377 MB indirme, hazırlık için en az 4 GB boş alan gerekir. Gcenx paketinin Wine motoru kullanılmaz; yalnızca yardımcı kütüphaneleri alınır. Oyunlar ayrıca indirilir. Rosetta ve macOS izinleri gerekebilir; Apple'ın kurulum ekranlarını siz tamamlarsınız.
+Kurulum ekranındaki **Ücretsiz motoru indir ve kur** düğmesini kullanın. Resmî Wine 11.18 ve DXMT 0.80 ile bu proje için kaynak koddan derlenen Mac grafik sürücüsü indirilir. Dosyaların boyutları ve sabit özetleri doğrulanır. Yaklaşık 210 MB indirme ve hazırlık için en az 4 GB boş alan gerekir. Oyunlar ayrıca indirilir. Rosetta, Mac’in Intel programlarını çalıştırmasını sağlar; gerekirse Apple’ın kurulum ekranını siz tamamlarsınız.
+
+Uyarlama sürücüsü, LGPL lisansı ve tam değiştirilmiş Wine kaynakları [aynı sürüm sayfasındadır](https://github.com/anilbirdan/coop-oyun/releases/tag/wine-driver-11.18-coop1). Sürücü yalnız doğrulandığı Wine paketiyle eşleştirilir.
 
 Motor hazırlandıktan sonra **Kurulumu kontrol et** düğmesi Mac/Rosetta ve ayrı bir deneme ortamında Windows komutunu sınar. Bu kontrol, grafik veya co-op testi değildir. Gerçek sonuç yerel dosyada tutulur.
 
-Elle dosya seçmek isteyenler gelişmiş bölümü kullanabilir. Ana `wswine.bundle` ve açılmış DXMT klasörü seçilir; özel kopya hazırlanır. Grafik sürücüsünde DXMT bağlantısı olmayan Wine paketi reddedilir. 64 bit DLL ve builtin/standart biçimi ayrılır. Elle seçilen paketin sürüm kökeni otomatik onaylanmaz.
+Elle dosya seçmek isteyenler gelişmiş bölümü kullanabilir. Uyarlanmış Wine uygulaması ve açılmış DXMT klasörü seçilir; özel kopya hazırlanır. Grafik sürücüsünde DXMT bağlantısı olmayan Wine paketi reddedilir. 64 bit DLL ve builtin/standart biçimi ayrılır. Elle seçilen paketin sürüm kökeni otomatik onaylanmaz.
 
 Oyun kartından sırasıyla **Ortamı hazırla → Steam'i kur → Steam'i aç → Oyunu Steam'den kur**. Steam hesabınıza Steam penceresinde giriş yapın; uygulama parola istemez. Palworld için mevcut Windows sürümünüz kullanılır, Mac sürümünü yeniden satın alma akışı yoktur.
 
@@ -45,4 +47,4 @@ Oyun kartından sırasıyla **Ortamı hazırla → Steam'i kur → Steam'i aç �
 
 Uyumluluk kaynakları UYUMLULUK.md, teknik kararlar KARARLAR.md ve doğrulama sonuçları DOGRULAMA.md içinde. Kişisel çalışma planı ve devam kayıtları açık depoya eklenmez.
 
-Uygulama paketinde resmî ARM64 Node çalıştırıcısı ve lisansı bulunur. Wine, DXMT ve Steam kullanıcı bilgisayarına resmî kaynaklardan indirilir; dağıtım paketine eklenmez. Kaynaklar: https://github.com/Sikarugir-App/Engines ve https://github.com/Sikarugir-App/wine ve https://github.com/3Shain/dxmt . Whisky/CrossOver kodu kopyalanmadı. İlgili projelerin kullanım ve lisans koşulları geçerlidir.
+Uygulama paketinde resmî ARM64 Node çalıştırıcısı ve lisansı bulunur. Wine, DXMT ve Steam kullanıcı bilgisayarına resmî kaynaklardan indirilir; dağıtım paketine eklenmez. Kaynaklar: https://github.com/Gcenx/macOS_Wine_builds ve https://github.com/wine-mirror/wine ve https://github.com/3Shain/dxmt . Whisky/CrossOver kodu kopyalanmadı. İlgili projelerin kullanım ve lisans koşulları geçerlidir.

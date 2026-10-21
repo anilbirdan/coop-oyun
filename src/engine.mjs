@@ -174,7 +174,7 @@ export class Engine {
         if (rel.startsWith('..') || path.isAbsolute(rel)) throw new Error('Wine paketi dış klasöre bağlı. Kendi içinde tam paket gerekiyor.');
       }
       const version=await this.runner(runtime.binary,['--version'],{env:{...process.env,DYLD_LIBRARY_PATH:path.join(runtime.root,'lib')+':'+path.join(runtime.root,'lib/wine/x86_64-unix')},timeout:15000,log});
-      if (!/^wine-11\.0(?:\b|$)/.test(version)) throw new Error('Bu sürüm grafik bağlantısı bulunan Wine 11.0 motorunu bekliyor. Bulunan: ' + version);
+      if (!/^wine-11\.18(?:\b|$)/.test(version)) throw new Error('Bu sürüm grafik bağlantısı bulunan Wine 11.18 motorunu bekliyor. Bulunan: ' + version);
       const hashes = {};
       for (const [name, from] of Object.entries(dxmt.files)) {
         const destination = name.endsWith('.so') ? path.join(runtime.root, 'lib/wine/x86_64-unix', name) : path.join(runtime.root, 'lib/wine/x86_64-windows', name);
