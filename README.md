@@ -2,7 +2,7 @@
 
 Mac için deneysel, Türkçe oyun başlatıcısı. Bellwright, **Palworld Windows/Steam sürümü** ve Raft kapsamda. Abonelik veya uygulama hesabı yok; oyun lisansları kullanıcıya ait olmalı.
 
-**Sürüm 0.2.1: Mac uygulama paketi ve otomatik motor kurulumu. Bulut Mac doğrulaması sürüyor; oyun ve arkadaş bağlantısı henüz doğrulanmadı.** Program, mevcut ücretsiz Wine ve DXMT motorunu yönetir. Tamamlanmış oyun uyumluluğu garantisi değildir. Paket imzalı/noter onaylı değildir.
+**Sürüm 0.2.1: Deneysel geliştirme sürümü. Bulut Mac'te uygulama paketinin açılışı geçti; Windows ortamının başlatılması şu anda başarısız. Oyun ve arkadaş bağlantısı doğrulanmadı.** Program, mevcut ücretsiz Wine ve DXMT motorunu yönetir. Paket imzalı/noter onaylı değildir. Kullanıma hazır oyun sürümü henüz yayımlanmadı.
 
 ## Açma
 
@@ -10,7 +10,7 @@ Mac için deneysel, Türkçe oyun başlatıcısı. Bellwright, **Palworld Window
 2. **Coop Oyun.app** uygulamasını Uygulamalar klasörüne taşıyıp açın. Node programın içinde gelir; ayrıca kurulmaz. M serisi Mac içindir.
 3. Tarayıcıda yerel arayüz açılır. Programı tekrar açmak aynı pencereye bağlantı verir. Kapatmak için arayüzde **Uygulamayı kapat** seçeneğini kullanın. Oyunlar otomatik kapatılmaz; önce oyun içinden kaydedin.
 
-macOS ilk açılışı imzasız paket olduğu için engelleyebilir; güvenlik ayarları otomatik değiştirilmez. Gerçek Mac açılışı bu ortamda doğrulanmadı.
+macOS ilk açılışı imzasız paket olduğu için engelleyebilir; güvenlik ayarları otomatik değiştirilmez. Bulut ARM64 Mac'te `open` üzerinden paket açılışı ve yerel hizmet doğrulandı; Finder tıklaması ve hedef M5 doğrulanmadı. Ayrıntı DOGRULAMA.md içinde.
 
 Kaynak koddan çalıştıracaksanız Node.js 22+ gerekir: `node src/server.mjs`. `Baslat.command` da aynı kaynak sürümünü açar.
 
@@ -43,6 +43,6 @@ Oyun kartından sırasıyla **Ortamı hazırla → Steam'i kur → Steam'i aç �
 
 `node --test` — gerçek oyun testleri değil; motor kopyalama, sürüm reddi, oyun ortamı ayrımı, komut sınırları, kayıtlar ve yerel erişim kontrolleri.
 
-İzlenecek sıra PLAN.md, kaldığımız yer KALDIGIMIZ_YER.md, kaynaklar UYUMLULUK.md, teknik kararlar KARARLAR.md içinde.
+Uyumluluk kaynakları UYUMLULUK.md, teknik kararlar KARARLAR.md ve doğrulama sonuçları DOGRULAMA.md içinde. Kişisel çalışma planı ve devam kayıtları açık depoya eklenmez.
 
 Uygulama paketinde resmî ARM64 Node çalıştırıcısı ve lisansı bulunur. Wine, DXMT ve Steam kullanıcı bilgisayarına resmî kaynaklardan indirilir; dağıtım paketine eklenmez. Kaynaklar: https://github.com/Sikarugir-App/Engines ve https://github.com/Sikarugir-App/wine ve https://github.com/3Shain/dxmt . Whisky/CrossOver kodu kopyalanmadı. İlgili projelerin kullanım ve lisans koşulları geçerlidir.
