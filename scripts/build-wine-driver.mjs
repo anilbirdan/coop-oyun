@@ -59,7 +59,7 @@ if(process.argv[2]==='prepare'){
     await fs.copyFile(dxmt.files['winemetal.dll'],path.join(prefix,'drive_c/windows/system32/winemetal.dll'));
     const probe=path.join(local,'d3d11-probe.exe');
     await runProcess('x86_64-w64-mingw32-gcc',[path.join(root,'scripts/d3d11-probe.c'),'-O2','-o',probe,'-luser32','-ldxguid'],{timeout:60000});
-    report.frameProbe=await runProcess(path.join(runtime,'bin/wine'),[probe],{env:{...env,WINEDLLOVERRIDES:'dxgi,d3d11=b',WINEDEBUG:'err+all'},timeout:90000,maxOutput:8000,log:message=>process.stdout.write(message)});
+    report.frameProbe=await runProcess(path.join(runtime,'bin/wine'),[probe],{env:{...env,WINEDLLOVERRIDES:'dxgi,d3d11=b',WINEDEBUG:'err+all',COOP_DXMT_DIAGNOSTICS:'1'},timeout:90000,maxOutput:8000,log:message=>process.stdout.write(message)});
     if(!report.frameProbe.includes('D3D11_PROBE frame_readback_and_present_passed'))throw new Error('Gercek Direct3D goruntu denetimi gecmedi.');
     report.basicD3D11FrameVerified=true;
   }catch(error){report.error=error.message;throw error;}
