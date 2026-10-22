@@ -24,7 +24,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release download v0.3.0 --pattern Coop-Oyun-M5-0.3.0.zip --dir .local/distribution
+        run: gh release download v0.3.2 --pattern Coop-Oyun-M5-0.3.2.zip --dir .local/distribution
       - name: Gercek dagitim dosyasini dogrula ve ac
         env:
           COOP_ARCHIVE_SHA: ${{ inputs.archive_sha256 }}

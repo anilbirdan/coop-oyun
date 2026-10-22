@@ -1,0 +1,28 @@
+name: Mac aday paketini hazirla
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    if: github.event.repository.private == false
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install mingw-w64
+      - name: Node ve uygulama paketi
+        run: |
+          node --input-type=module -e "import {downloadVerified} from './src/installer.mjs'; import {releases} from './src/releases.mjs'; await downloadVerified(releases.node,'.local/vendor',console.log);"
+          node scripts/build-mac.mjs --python python3
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: coop-mac-candidate
+          path: |
+            dist/*.zip
+            dist/*.sha256
+            PAKET_DOGRULAMA.json
+          retention-days: 3
+          if-no-files-found: error
