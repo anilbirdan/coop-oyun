@@ -2,17 +2,19 @@
 
 Mac için deneysel, Türkçe oyun başlatıcısı. Bellwright, **Palworld Windows/Steam sürümü** ve Raft kapsamda. Abonelik veya uygulama hesabı yok; oyun lisansları kullanıcıya ait olmalı.
 
+**0.3.1:** Windows Steam'in Mac'te siyah pencere/giriş hatası için bilinen düzeltme eklendi (steamwebhelper sarmalayıcısı, Steam bayrakları, overlay kapalı) ve Unreal oyunları `-dx11` ile açılır. Ayrıntı KARARLAR.md / 16. Gerçek Mac'te Steam girişi hâlâ doğrulanmadı.
+
 **0.3.0 deneme sürümü.** Bulut Mac üzerinde otomatik motor kurulumu, gerçek Direct3D 11 görüntüsü, boyutlandırma/yeniden açma, Steam dosyalarının kurulumu ve uygulamanın açılıp kapanması geçti. **Steam hesabına giriş, oyun, performans ve arkadaş bağlantısı henüz doğrulanmadı.** M5 hedeflenir; test makinesi M1 sanal Mac idi. Paket imzalı/noter onaylı değildir.
 
 ## Açma
 
-1. [Mac deneme paketini indirin](https://github.com/anilbirdan/coop-oyun/releases/download/v0.3.0/Coop-Oyun-M5-0.3.0.zip) ve ZIP dosyasını Mac’te açın.
+1. [Mac deneme paketini indirin](https://github.com/anilbirdan/coop-oyun/releases/download/v0.3.1/Coop-Oyun-M5-0.3.1.zip) ve ZIP dosyasını Mac’te açın.
 2. **Coop Oyun.app** uygulamasını Uygulamalar klasörüne taşıyıp açın. Node programın içinde gelir; ayrıca kurulmaz. M serisi Mac içindir.
 3. Tarayıcıda yerel arayüz açılır. Programı tekrar açmak aynı pencereye bağlantı verir. Kapatmak için arayüzde **Uygulamayı kapat** seçeneğini kullanın. Oyunlar otomatik kapatılmaz; önce oyun içinden kaydedin.
 
 macOS ilk açılışı imzasız paket olduğu için engelleyebilir; güvenlik ayarları otomatik değiştirilmez. Bulut ARM64 Mac'te `open` üzerinden paket açılışı ve yerel hizmet doğrulandı; Finder tıklaması ve hedef M5 doğrulanmadı. Ayrıntı DOGRULAMA.md içinde. İlk açılış engellenirse [Apple’ın uygulamaya özel açma yönergesini](https://support.apple.com/tr-tr/102445) izleyin; sistem güvenliğini kapatmayın.
 
-Kaynak koddan çalıştıracaksanız Node.js 22+ gerekir: `node src/server.mjs`. `Baslat.command` da aynı kaynak sürümünü açar.
+Kaynak koddan çalıştıracaksanız Node.js 22+ gerekir: `node src/server.mjs`. Steam sarmalayıcısı için bir kez `brew install mingw-w64 && npm run build-wrapper`. `Baslat.command` da aynı kaynak sürümünü açar.
 
 Windows üzerinde `node src/server.mjs --preview` arayüzü açar; ekrandaki yerel bağlantıyı tarayıcıya yapıştırın. Windows'ta Wine çalıştırma işlemleri kapalıdır. Hiçbir ek npm paketi gerekmiyor.
 
@@ -26,7 +28,7 @@ Motor hazırlandıktan sonra **Kurulumu kontrol et** düğmesi Mac/Rosetta ve ay
 
 Elle dosya seçmek isteyenler gelişmiş bölümü kullanabilir. Uyarlanmış Wine uygulaması ve açılmış DXMT klasörü seçilir; özel kopya hazırlanır. Grafik sürücüsünde DXMT bağlantısı olmayan Wine paketi reddedilir. 64 bit DLL ve builtin/standart biçimi ayrılır. Elle seçilen paketin sürüm kökeni otomatik onaylanmaz.
 
-Oyun kartından sırasıyla **Ortamı hazırla → Steam'i kur → Steam'i aç → Oyunu Steam'den kur**. Steam hesabınıza Steam penceresinde giriş yapın; uygulama parola istemez. Palworld için mevcut Windows sürümünüz kullanılır, Mac sürümünü yeniden satın alma akışı yoktur.
+Oyun kartından sırasıyla **Ortamı hazırla → Steam'i kur → Steam'i aç → Oyunu Steam'den kur**. **Steam'i kur** artık Steam istemcisini de indirir (yaklaşık 300 MB); bu sırada açılan Steam penceresi iş bitince kendiliğinden kapanır. Steam hesabınıza Steam penceresinde giriş yapın; uygulama parola istemez. Steam güncellendikten sonra pencere siyah kalırsa **Ortamı kapat → Steam'i aç** yeterli. Steam overlay (Shift+Tab) bilerek kapalıdır; davetleri oyunun kendi ekranından ya da Steam penceresindeki arkadaş listesinden kabul edin. Palworld için mevcut Windows sürümünüz kullanılır, Mac sürümünü yeniden satın alma akışı yoktur.
 
 **Oyunu başlat** Steam'e komut gönderir. Oyun açılmış, kurulmuş veya co-op çalışıyor sonucunu otomatik üretmez. Davet/oda işlemleri oyunun kendi ekranında yapılır. Kapatma seçeneği ilgili oyunun Steam'ini de kapatır; önce kaydedin.
 
@@ -43,7 +45,7 @@ Oyun kartından sırasıyla **Ortamı hazırla → Steam'i kur → Steam'i aç �
 
 ## Kontroller
 
-`node --test` — gerçek oyun testleri değil; motor kopyalama, sürüm reddi, oyun ortamı ayrımı, komut sınırları, kayıtlar ve yerel erişim kontrolleri.
+`npm test` — gerçek oyun testleri değil; motor kopyalama, sürüm reddi, oyun ortamı ayrımı, komut sınırları, kayıtlar ve yerel erişim kontrolleri.
 
 Uyumluluk kaynakları UYUMLULUK.md, teknik kararlar KARARLAR.md ve doğrulama sonuçları DOGRULAMA.md içinde. Kişisel çalışma planı ve devam kayıtları açık depoya eklenmez.
 

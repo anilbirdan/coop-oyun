@@ -1,3 +1,13 @@
+# Doğrulama — 0.3.1
+
+## 0.3.1 Steam düzeltmesi
+
+22 Ekim 2026. Gerçek Mac'te henüz koşmadı; `Mac ARM64 temel calistirma testi` iş akışı artık Steam istemcisini indirip sarmalayıcıyı yerleştirir, Steam'i açar, Valve'ın arayüz sürecinin çalıştığını denetler ve ekran görüntüsünü `steam-ui` çıktısı olarak saklar. Hesap girişi CI'da yapılmaz.
+
+- Sarmalayıcı mingw-w64 ile derlendi (PE32+, Windows GUI, yalnız KERNEL32/msvcrt). Linux Wine'da: bayraklar eklendi, tırnaklı argümanlar ve çıkış kodu aynen geçti; sarmalayıcı sonlandırılınca gerçek süreç de kapandı.
+- Birim testleri: Valve dosyasının korunması, güncelleme sonrası onarım, kayıp özgün dosyada güvenli durma, ilk açılış/zaman aşımı akışı, oyun parametreleri, kilit temizliği. 37/37 geçti.
+- `node --test` artık yalnız `test/*.test.mjs` çalıştırır; önceki komut dağıtım betiğini de test sanıp Mac dışında başarısız oluyordu.
+
 # Doğrulama — 0.3.0
 
 21 Ekim 2026. Hedef M5; test makinesi Apple M1 (Virtual), macOS 15.7.9 ARM64. M5 veya oyun başarısı çıkarımı yapılmaz.

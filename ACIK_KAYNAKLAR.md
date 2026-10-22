@@ -7,6 +7,8 @@
 - **DXMT 0.80:** DirectX 10/11 grafik çevirisi. [Resmî hazır ikilisi](https://github.com/3Shain/dxmt/releases/tag/v0.80) indirilir; burada kaynak kodundan derlenmedi.
 - **Node.js 22.23.3 ARM64 Mac:** Arayüz ve kurulum kodumuzu çalıştırır. [Resmî ikili](https://nodejs.org/dist/v22.23.3/) Mac uygulamasında lisansıyla birlikte gelir.
 
+- **Steam arayüz sarmalayıcısı (wrapper/):** Bu projede yazıldı. Yaklaşım ve bayraklar [notpop/steam-on-m1-wine](https://github.com/notpop/steam-on-m1-wine) (MIT), [ByMedion/macos-wine-steam](https://github.com/ByMedion/macos-wine-steam) ve [Gcenx/macOS_Wine_builds#159](https://github.com/Gcenx/macOS_Wine_builds/issues/159) tartışmasından alındı; kodları kopyalanmadı.
+
 Paket adresleri, sürümleri, boyutları ve sabit SHA256 özetleri src/releases.mjs içindedir. Sürücü yalnız sınandığı Wine arşiviyle eşleşirse kurulur. Wine, DXMT ve Steam kullanıcı bilgisayarına indirilir; uygulama ZIP'ine oyun veya Steam hesabı eklenmez.
 
 ## Kopyalamadığımız ve elenen aday

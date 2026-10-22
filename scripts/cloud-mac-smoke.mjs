@@ -8,11 +8,13 @@ import {Engine,runProcess} from '../src/engine.mjs';
 import {installOfficialEngine,downloadVerified} from '../src/installer.mjs';
 import {releases} from '../src/releases.mjs';
 import {readJSON,writeJSON} from '../src/storage.mjs';
+import {buildWrapper} from './build-webhelper-wrapper.mjs';
+import {webHelperDirectories} from '../src/steam.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const local=path.join(root,'.local');
 const version=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8')).version;
-const report={at:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,basicD3D11FrameVerified:false,coOpVerified:false,steamLoginVerified:false,finderLaunchVerified:false,launchServicesVerified:false};
+const report={at:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,platform:process.platform,arch:process.arch,steps:[],gameLaunchVerified:false,graphicsVerified:false,basicD3D11FrameVerified:false,coOpVerified:false,steamLoginVerified:false,steamUiProcessVerified:false,finderLaunchVerified:false,launchServicesVerified:false};
 const unpacked=path.join(local,'cloud-unpacked');
 const bundle=path.join(unpacked,'Coop Oyun.app');
 let engine; let app; let wineFailure;
@@ -60,12 +62,42 @@ try{
   if(!wineFailure){
     await step('Palworld ortami ve resmi Steam kurulumu',async()=>{
       try{
+        report.steamWebHelperWrapper=await buildWrapper();
         await engine.installSteam('palworld',message=>process.stdout.write(message));
         if(!await engine.steamPath('palworld'))throw new Error('Steam exe dosyasi kurulumdan sonra bulunamadi.');
         report.steamFilesInstalled=true;
+        const dirs=await webHelperDirectories(path.dirname(await engine.steamPath('palworld')));
+        report.steamCefDirectories=dirs.map(dir=>path.basename(dir));
+        for(const dir of dirs){
+          const size=(await fs.stat(path.join(dir,'steamwebhelper.exe'))).size;
+          const real=(await fs.stat(path.join(dir,'steamwebhelper_real.exe'))).size;
+          if(size!==report.steamWebHelperWrapper.bytes||real<500000)throw new Error('Steam arayuz sarmalayicisi yerlesmedi: '+dir);
+        }
+        report.steamWrapperInstalled=dirs.length>0;
       }finally{await engine.stop('palworld',message=>process.stdout.write(message)).catch(()=>{});}
     }).catch(error=>{wineFailure=error;});
   }else report.steps.push({name:'Palworld ortami ve resmi Steam kurulumu',status:'skipped'});
+  if(!wineFailure){
+    // Steam UI with the wrapper: Valve's real helper must be running and stay
+    // up. Login is not attempted (no account in CI); screenshot is evidence.
+    await step('Steam arayuzu sarmalayiciyla acilir',async()=>{
+      const running=pattern=>runProcess('/usr/bin/pgrep',['-f',pattern],{timeout:10000}).then(()=>true,()=>false);
+      try{
+        await engine.launch('palworld','steam',message=>process.stdout.write(message));
+        let seen=false;
+        for(let i=0;i<60&&!seen;i++){await delay(3000);seen=await running('steamwebhelper_real');}
+        if(!seen)throw new Error('Valve steamwebhelper sarmalayici uzerinden baslamadi.');
+        await delay(45000);
+        if(!await running('steamwebhelper_real'))throw new Error('Steam arayuzu acildiktan sonra kapandi.');
+        report.steamUiProcessVerified=true;
+        await runProcess('/usr/sbin/screencapture',['-x',path.join(local,'steam-ui.png')],{timeout:20000}).then(()=>{report.steamScreenshot='steam-ui.png';},()=>{});
+        const logs=path.join(path.dirname(await engine.steamPath('palworld')),'logs');
+        const cef=await fs.readFile(path.join(logs,'cef_log.txt'),'utf8').catch(()=>'');
+        report.steamCefHandshakeFailures=(cef.match(/handshake failed/g)||[]).length;
+        report.steamCefLogBytes=cef.length;
+      }finally{await engine.stop('palworld',message=>process.stdout.write(message)).catch(()=>{});}
+    }).catch(error=>{wineFailure=error;});
+  }else report.steps.push({name:'Steam arayuzu sarmalayiciyla acilir',status:'skipped'});
   await engine.close();
   await step('Mac uygulama paketini uret',async()=>{
     await downloadVerified(releases.node,path.join(local,'vendor'),message=>process.stdout.write(message));
@@ -128,9 +160,9 @@ finally{
   if(app&&app.exitCode===null)app.kill('SIGTERM');
   await engine?.close();
   await fs.mkdir(local,{recursive:true});
-  report.passed=report.steps.length===8&&report.steps.every(step=>step.status==='passed');
+  report.passed=report.steps.length===9&&report.steps.every(step=>step.status==='passed');
   await writeJSON(path.join(local,'cloud-mac-report.json'),report);
-  const markdown=['# Bulut Mac temel test sonucu','',...report.steps.map(step=>`- ${step.name}: ${step.status}${step.error?' — '+step.error:''}`),'','Kucuk Direct3D goruntu sinamasi oyun grafigi/performansi demek degildir. Steam girisi, oyun acilisi, co-op ve Finder tiklamasi bu testle dogrulanmaz.',''];
+  const markdown=['# Bulut Mac temel test sonucu','',...report.steps.map(step=>`- ${step.name}: ${step.status}${step.error?' — '+step.error:''}`),'',`Steam arayuz sureci: ${report.steamUiProcessVerified?'calisiyor':'dogrulanmadi'}; CEF TLS el sikisma hatasi: ${report.steamCefHandshakeFailures??'-'}`,'','Kucuk Direct3D goruntu sinamasi oyun grafigi/performansi demek degildir. Steam girisi, oyun acilisi, co-op ve Finder tiklamasi bu testle dogrulanmaz.',''];
   await fs.writeFile(path.join(local,'cloud-mac-report.md'),markdown.join('\n'));
   console.log('COOP_CLOUD_REPORT='+JSON.stringify(report));
 }

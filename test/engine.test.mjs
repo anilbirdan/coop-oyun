@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { Engine, findRuntime, runProcess } from '../src/engine.mjs';
 import { inside, readJSON, writeJSON } from '../src/storage.mjs';
+import { steamClientArgs } from '../src/steam.mjs';
+import { fakeWrapper } from './helpers.mjs';
 
 async function fixture(t, options = {}) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'coop-test-'));
@@ -23,9 +25,18 @@ async function fixture(t, options = {}) {
       const steam = path.join(settings.env.WINEPREFIX, 'drive_c/Program Files (x86)/Steam');
       await fs.mkdir(steam, { recursive: true }); await fs.writeFile(path.join(steam, 'steam.exe'), 'fake-steam');
     }
+    // First Steam start: the bootstrapper extracts the CEF client.
+    if (settings.background && args[0].endsWith('steam.exe') && !options.noBootstrap) {
+      const cef = path.join(path.dirname(args[0]), 'bin/cef/cef.win64');
+      await fs.mkdir(cef, { recursive: true });
+      try { await fs.access(path.join(cef, 'steamwebhelper_real.exe')); } catch { await fs.writeFile(path.join(cef, 'steamwebhelper.exe'), Buffer.alloc(600000, 7)); }
+    }
     return '';
   };
-  const engine = new Engine({ dataDir, platform: 'darwin', runner, downloader: file => fs.writeFile(file, 'fake-installer'), ...options });
+  const wrapperPath = path.join(dir, 'steamwebhelper.exe');
+  await fs.writeFile(wrapperPath, fakeWrapper());
+  const { noBootstrap, ...engineOptions } = options;
+  const engine = new Engine({ dataDir, platform: 'darwin', runner, downloader: file => fs.writeFile(file, 'fake-installer'), wrapperPath, probe: async () => true, sleep: async () => {}, ...engineOptions });
   const winePath = path.join(dir, 'Wine with spaces.app');
   const base = path.join(winePath, 'Contents/Resources/wine');
   for (const directory of ['bin', 'lib/wine/x86_64-unix', 'lib/wine/x86_64-windows']) await fs.mkdir(path.join(base, directory), { recursive: true });
@@ -39,7 +50,7 @@ async function fixture(t, options = {}) {
     const bytes = Buffer.alloc(256); bytes.write('MZ'); bytes.writeUInt32LE(128, 0x3c); bytes.write('PE\0\0',128); bytes.writeUInt16LE(0x8664,132);
     await fs.writeFile(path.join(dxmtPath, name), bytes);
   }
-  return { dir, engine, calls, winePath, dxmtPath, base };
+  return { dir, engine, calls, winePath, dxmtPath, base, wrapperPath };
 }
 
 test('Windows blocks all real Wine actions before any process runs', async t => {
@@ -78,10 +89,10 @@ test('each game has isolated Steam, engine binding and scoped shutdown', async t
   assert.notEqual(first.id, second.id);
   await f.engine.launch('palworld', 'play', () => {});
   const launch = f.calls.at(-1);
-  assert.deepEqual(launch.args.slice(1), ['-applaunch', '1623730']);
+  assert.deepEqual(launch.args.slice(1), [...steamClientArgs, '-applaunch', '1623730', '-dx11']);
   assert.ok(launch.binary.includes(first.id));
   assert.equal(launch.env.WINEPREFIX, f.engine.prefix('palworld'));
-  assert.equal(launch.env.WINEDLLOVERRIDES, 'dxgi,d3d11=n,b');
+  assert.equal(launch.env.WINEDLLOVERRIDES, 'dxgi,d3d11=n,b;bcrypt=b;ncrypt=b;gameoverlayrenderer,gameoverlayrenderer64=d');
   assert.equal(launch.background, true);
   await f.engine.stop('raft', () => {});
   assert.deepEqual(f.calls.at(-1).args, ['-k']);

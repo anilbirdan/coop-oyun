@@ -9,14 +9,14 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const expectedArchive=process.env.COOP_ARCHIVE_SHA;
 const expectedSource=process.env.COOP_SOURCE_HASH;
 if(process.platform!=='darwin'||process.arch!=='arm64'||![expectedArchive,expectedSource].every(value=>/^[a-f0-9]{64}$/.test(value||'')))throw new Error('ARM64 Mac ve iki sabit ozet gerekir.');
-const archive=path.join(root,'.local/distribution/Coop-Oyun-M5-0.3.0.zip');
+const archive=path.join(root,'.local/distribution/Coop-Oyun-M5-0.3.1.zip');
 if(await hashFile(archive)!==expectedArchive)throw new Error('Dagitim ZIP ozeti eslesmiyor.');
 const unpack=path.join(root,'.local/distribution/open');await fs.mkdir(unpack,{recursive:true});
 await runProcess('/usr/bin/ditto',['-xk',archive,unpack],{timeout:120000});
 const bundle=path.join(unpack,'Coop Oyun.app');
 const resources=path.join(bundle,'Contents/Resources');
 const manifest=await readJSON(path.join(resources,'build-manifest.json'));
-if(manifest.sourceHash!==expectedSource||manifest.version!=='0.3.0')throw new Error('Dagitim kaynak surumu sinanan surumle eslesmiyor.');
+if(manifest.sourceHash!==expectedSource||manifest.version!=='0.3.1')throw new Error('Dagitim kaynak surumu sinanan surumle eslesmiyor.');
 if(await hashFile(path.join(resources,'node'))!==manifest.nodeBinarySha256)throw new Error('Paket Node ikilisi eslesmiyor.');
 for(const [name,hash] of Object.entries(manifest.sourceFiles)){
   const target=path.resolve(resources,'app',name);
@@ -40,7 +40,7 @@ try{
   const response=await fetch(session.origin+'api/state',{headers,signal:AbortSignal.timeout(10000)});
   if(!response.ok)throw new Error('Dagitim API yaniti basarisiz.');
   const state=await response.json();
-  if(state.version!=='0.3.0'||!state.mac||state.games.map(game=>game.id).join(',')!=='bellwright,palworld,raft')throw new Error('Dagitim uygulama durumu yanlis.');
+  if(state.version!=='0.3.1'||!state.mac||state.games.map(game=>game.id).join(',')!=='bellwright,palworld,raft')throw new Error('Dagitim uygulama durumu yanlis.');
   const quit=await fetch(session.origin+'api/quit',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(5000)});
   if(!quit.ok)throw new Error('Dagitim uygulamasi normal kapanamadi.');
   for(let i=0;i<100&&await readJSON(sessionFile,null);i++)await delay(100);

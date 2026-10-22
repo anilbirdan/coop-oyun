@@ -1,9 +1,9 @@
 {
   "name": "coop-oyun",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "description": "Mac için deneysel Türkçe co-op oyun başlatıcısı",
   "engines": { "node": ">=22" },
-  "scripts": { "start": "node src/server.mjs", "test": "node --test", "preview": "node src/server.mjs --preview" }
+  "scripts": { "start": "node src/server.mjs", "test": "node --test test/*.test.mjs", "build-wrapper": "node scripts/build-webhelper-wrapper.mjs", "preview": "node src/server.mjs --preview" }
 }

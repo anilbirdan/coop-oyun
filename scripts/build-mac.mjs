@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { releases } from '../src/releases.mjs';
 import { hashFile } from '../src/storage.mjs';
 import { runProcess } from '../src/engine.mjs';
+import { buildWrapper } from './build-webhelper-wrapper.mjs';
 
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const version=JSON.parse(await fs.readFile(path.join(project,'package.json'),'utf8')).version;
@@ -25,6 +26,10 @@ const node = await fs.open(path.join(resources, 'node'));
 const header = Buffer.alloc(12); try { await node.read(header, 0, 12, 0); } finally { await node.close(); }
 if (header.readUInt32LE(0) !== 0xfeedfacf || header.readUInt32LE(4) !== 0x0100000c) throw new Error('Paket içindeki Node ARM64 Mach-O değil.');
 for (const folder of ['src', 'public']) await fs.cp(path.join(project, folder), path.join(resources, 'app', folder), {recursive:true, force:true});
+// Steam UI fix: compiled steamwebhelper wrapper ships next to its source.
+const wrapper = await buildWrapper();
+await fs.mkdir(path.join(resources, 'app/wrapper'), {recursive:true});
+for (const file of ['steamwebhelper.exe', 'steamwebhelper-wrapper.c']) await fs.copyFile(path.join(project, 'wrapper', file), path.join(resources, 'app/wrapper', file));
 for (const file of ['package.json', 'README.md', 'UYUMLULUK.md', 'KARARLAR.md', 'DOGRULAMA.md', 'ACIK_KAYNAKLAR.md']) await fs.copyFile(path.join(project, file), path.join(resources, 'app', file));
 await fs.writeFile(path.join(contents, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -53,7 +58,7 @@ if ! "$RESOURCES/node" "$RESOURCES/app/src/server.mjs" --bundle >> "$LOG_DIR/lau
 fi
 `;
 await fs.writeFile(path.join(contents, 'MacOS/CoopOyun'), launcher, {mode:0o755});
-await fs.writeFile(path.join(staging,'ONCE-OKU.txt'),`Coop Oyun ${version} — Apple Silicon Mac\n\nCoop Oyun uygulamasını Uygulamalar klasörüne taşıyıp açın.\nKurulum ekranında Ücretsiz motoru indir ve kur seçeneğini kullanın.\nNode ayrıca kurulmaz. Motor kurulumu yaklaşık 210 MB indirir.\nOyunlar için kendi Windows Steam lisansınız gerekir.\n\nBu paket imzalı/noter onaylı değildir. macOS ilk açılışı engelleyebilir.\nGüvenlik ayarlarını kapatmayın.\nOyun ve co-op testleri henüz yapılmadı.\n`);
+await fs.writeFile(path.join(staging,'ONCE-OKU.txt'),`Coop Oyun ${version} — Apple Silicon Mac\n\nCoop Oyun uygulamasını Uygulamalar klasörüne taşıyıp açın.\nKurulum ekranında Ücretsiz motoru indir ve kur seçeneğini kullanın.\nNode ayrıca kurulmaz. Motor kurulumu yaklaşık 210 MB indirir.\nSteam'in ilk kurulumu ayrıca yaklaşık 300 MB indirir; bu sırada açılan Steam penceresi kendiliğinden kapanır.\nOyunlar için kendi Windows Steam lisansınız gerekir.\n\nBu paket imzalı/noter onaylı değildir. macOS ilk açılışı engelleyebilir.\nGüvenlik ayarlarını kapatmayın.\nOyun ve co-op testleri henüz yapılmadı.\n`);
 const sourceFiles={};
 async function collect(folder){
   for(const entry of (await fs.readdir(path.join(resources,'app',folder),{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){
@@ -62,10 +67,10 @@ async function collect(folder){
     else sourceFiles[relative]=await hashFile(path.join(resources,'app',relative));
   }
 }
-await collect('src');await collect('public');
+await collect('src');await collect('public');await collect('wrapper');
 sourceFiles['package.json']=await hashFile(path.join(resources,'app/package.json'));
 const sourceHash=createHash('sha256').update(JSON.stringify(sourceFiles)).digest('hex');
-await fs.writeFile(path.join(resources,'build-manifest.json'),JSON.stringify({version,target:'darwin-arm64',sourceHash,sourceFiles,nodeVersion:releases.node.version,nodeArchiveSha256:releases.node.sha256,nodeBinarySha256:await hashFile(path.join(resources,'node')),releases},null,2));
+await fs.writeFile(path.join(resources,'build-manifest.json'),JSON.stringify({version,target:'darwin-arm64',sourceHash,sourceFiles,nodeVersion:releases.node.version,nodeArchiveSha256:releases.node.sha256,nodeBinarySha256:await hashFile(path.join(resources,'node')),steamWebHelperWrapperSha256:wrapper.sha256,releases},null,2));
 const pythonIndex = process.argv.indexOf('--python');
 const python = pythonIndex >= 0 ? process.argv[pythonIndex + 1] : (process.platform === 'win32' ? 'python' : 'python3');
 const destination=path.join(project,`dist/Coop-Oyun-M5-${version}.zip`);

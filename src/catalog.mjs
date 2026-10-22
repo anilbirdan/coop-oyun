@@ -1,6 +1,8 @@
 export const games = [
   {
     id: 'bellwright', name: 'Bellwright', appId: '1812450', mark: 'B', theme: 'forest',
+    // Unreal Engine 5 may pick DirectX 12; DXMT only translates DirectX 11.
+    launchArgs: ['-dx11'],
     tagline: 'Birlikte bir yerleşim kurun.',
     note: 'CrossOver üzerinde olumlu kayıt var. Bu ücretsiz motorla açılma ve arkadaş odası henüz denenmedi.',
     source: 'https://www.codeweavers.com/compatibility/crossover/bellwright',
@@ -8,6 +10,7 @@ export const games = [
   },
   {
     id: 'palworld', name: 'Palworld', appId: '1623730', mark: 'P', theme: 'sky',
+    launchArgs: ['-dx11'],
     tagline: 'Aynı dünyada, kendi ekibinizle.',
     note: 'Mevcut Windows/Steam lisansınızı kullanmak hedefleniyor. Steam girişi ve çevrim içi bağlantı ayrıca denenmeli. Mac sürümünü satın alma adımı yok.',
     source: 'https://store.steampowered.com/app/1623730/Palworld/',
@@ -15,6 +18,8 @@ export const games = [
   },
   {
     id: 'raft', name: 'Raft', appId: '648800', mark: 'R', theme: 'ocean',
+    // Unity: D3D11 device without single-thread mode, windowed (no macOS fullscreen takeover).
+    launchArgs: ['-force-d3d11-no-singlethreaded', '-screen-fullscreen', '0'],
     tagline: 'Bir sal, birkaç arkadaş, koca bir okyanus.',
     note: 'Yeni bağlantı sistemi nedeniyle eski çalışıyor raporları yeterli değil. Güncel sürümde oda kurma ve katılma henüz doğrulanmadı.',
     source: 'https://store.steampowered.com/app/648800/Raft/',
