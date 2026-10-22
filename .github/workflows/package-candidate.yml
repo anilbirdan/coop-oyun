@@ -1,6 +1,9 @@
 name: Mac aday paketini hazirla
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/steam-ui-fix]
+    paths: [.github/workflows/package-candidate.yml]
 permissions:
   contents: read
 jobs:
