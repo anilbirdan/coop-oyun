@@ -10,23 +10,25 @@
     <a class="brand" href="#"><span class="brand-icon">c.</span><span>coop<span class="brand-dot">.</span></span></a>
     <p class="eyebrow">SİZİN OYUN ALANINIZ</p>
     <nav aria-label="Ana menü">
-      <button class="nav active" data-page="library"><span>▦</span> Oyunlarım</button>
+      <button class="nav active" data-page="library"><span>01</span> Başlangıç</button>
       <button class="nav" data-page="settings"><span>⚙</span> Kurulum</button>
-      <button class="nav" data-page="logs"><span>≡</span> İşlem kayıtları</button>
+      <button class="nav" data-page="logs"><span>≡</span> Yardım ve kayıtlar</button>
     </nav>
-    <div class="sidebar-bottom"><span class="small-orb"></span> Yerel ve size ait<p>Üyelik yok. Abonelik yok.</p><button id="quit" class="secondary">Uygulamayı kapat</button><span class="version">OYUN TESTİ BEKLENİYOR · 0.3.0</span></div>
+    <div class="sidebar-bottom"><span class="small-orb"></span> Yerel ve size ait<p>Üyelik yok. Abonelik yok.</p><button id="quit" class="secondary">Uygulamayı kapat</button><span class="version">OYUN TESTİ BEKLENİYOR · 0.3.2</span></div>
   </aside>
   <main>
-    <header><span id="breadcrumb">Kütüphane / Co-op</span><span class="device" id="device">Bilgisayar kontrol ediliyor</span></header>
+    <header><span id="breadcrumb">Başlangıç / Steam kurulumu</span><span class="device" id="device">Bilgisayar kontrol ediliyor</span></header>
     <div id="notice" class="notice" role="status"></div>
     <section id="library" class="page">
-      <div class="heading"><div><p class="eyebrow">AYNI DÜNYADA BULUŞUN</p><h1>Tek başına güzel.<br>Birlikte başka.</h1><p class="subtitle">Windows oyunlarınız, Mac’iniz ve arkadaşlarınız.<br>Oyun ortamlarınız tek bir yerde.</p></div><div class="hero-art" aria-hidden="true"><div class="orbit one"></div><div class="orbit two"></div><div class="orb big"></div><div class="orb little"></div><span>+1</span></div></div>
-      <div class="section-title"><h2>Ekibin oyunları <span>03</span></h2><span class="muted">Steam · Windows sürümleri</span></div>
+<div class="welcome"><p class="eyebrow">ADIM ADIM KURULUM</p><h1>Önce Steam’i açalım.</h1><p class="subtitle">Oyun sahibi olmanız veya oyun indirmeniz gerekmiyor.<br>Önce kurulumu yapın, ardından ayrı Steam penceresinde hesabınıza girin.</p></div>
+<ol class="setup-track"><li>1 · Gerekli dosyalar</li><li>2 · Steam kurulumu</li><li>3 · Steam’e giriş</li></ol>
+<div class="setup-panel" aria-live="polite"><p id="setupNumber" class="eyebrow"></p><h2 id="setupTitle"></h2><p id="setupDescription"></p><button id="nextStep" class="primary"></button><p id="setupContext" class="muted"></p><div id="launchHelp" hidden><p><strong>Steam ayrı bir pencerede açılır.</strong> Güncelleme kapanıp giriş ekranı gelmediyse yardım düğmesini kullanın.</p><button id="steamMissing" class="secondary">Steam penceresi gelmedi</button></div><p id="setupProgress" role="status"></p><button id="setupHelp" class="text-button">Bir sorun var · Yardımı aç</button></div>
+      <div class="section-title"><h2>Sonra: oyun seçin</h2><span class="muted">Oyunlar pakete dahil değil</span></div>
       <div class="games" id="games"></div>
       <div class="footnote"><span>◇</span><p>Bu sürümde Mac ve arkadaş bağlantısı testleri bekleniyor. <strong>“Oyunu açıyor” ile “birlikte oynanıyor” ayrı ayrı kontrol edilir.</strong></p></div>
     </section>
     <section id="settings" class="page" hidden>
-      <p class="eyebrow">İLK ADIM</p><h1>Oyunlara yer açalım.</h1><p class="subtitle">Wine ve grafik dosyalarının kişisel kopyasını hazırlayın. Mevcut kurulumunuz korunur.</p>
+      <p class="eyebrow">İLK ADIM</p><h1>Kurulum ayarları.</h1><p class="subtitle">Wine ve grafik dosyalarının kişisel kopyasını hazırlayın. Mevcut kurulumunuz korunur.</p>
       <div class="panel"><h2>Ücretsiz çalıştırma motoru</h2><p>Gerekli dosyaları resmî kaynaklardan indirip sizin için hazırlayalım. Yaklaşık 210 MB indirme ve en az 4 GB boş alan gerekiyor. Oyunlar ayrıca indirilir.</p>
         <button id="automaticSetup" class="primary">Ücretsiz motoru indir ve kur →</button>
         <button id="doctor" class="secondary">Kurulumu kontrol et</button>
@@ -40,7 +42,7 @@
       </div>
       <div class="panel compact"><h2>Ne gerekiyor?</h2><p>Apple Silicon Mac, Rosetta ve oyunların Windows Steam lisansı. Mac uygulama paketinde Node hazır gelir. Wine’ın ilk açılışında macOS izin isteyebilir. Uygulama güvenlik ayarlarınızı değiştirmez.</p><p>Kurulum internet gerektirir. Sonraki çok oyunculu bağlantı oyun ve Steam üzerinden yürür; burada parola veya oda kodu saklanmaz.</p><p id="dataDir" class="muted"></p></div>
     </section>
-    <section id="logs" class="page" hidden><p class="eyebrow">NELER OLDU?</p><h1>İşlem kayıtları.</h1><p class="subtitle">Kayıtlar bu bilgisayarda kalır. Otomatik gönderilmez.</p><div id="jobs"></div><button id="export" class="secondary">Test kayıtlarını dosyaya indir</button></section>
+    <section id="logs" class="page" hidden><p class="eyebrow">NELER OLDU?</p><h1>Nerede takıldık?</h1><p class="subtitle">Kayıtlar bu bilgisayarda kalır. Otomatik gönderilmez.</p><div class="help-intro"><h2>Steam açılmadıysa</h2><p>Tekrar tekrar açma düğmesine basmayın. Aşağıdaki son çalıştırma kaydını paylaşın. “Açma isteği gönderildi” yazısı, Steam’in açıldığı anlamına gelmez.</p><button id="copyLogs" class="secondary">Hata bilgilerini kopyala</button><button id="downloadSupport" class="secondary">Hata bilgilerini dosyaya indir</button><p id="copyStatus" role="status"></p><div id="steamDiagnostics"></div></div><div id="jobs"></div><button id="export" class="secondary">Test kayıtlarını dosyaya indir</button></section>
     <footer><span>coop. <span class="muted">Birlikte oynamak için.</span></span><span class="muted">Kendi oyunların. Kendi dünyan.</span></footer>
   </main>
   <dialog id="gameDialog"><button class="dialog-close" aria-label="Kapat">×</button><p class="eyebrow">OYUN ORTAMI</p><h2 id="gameTitle"></h2><p id="gameNote" class="muted"></p><div class="status-row" id="gameStatus"></div><div id="actions" class="actions"></div><h3>Arkadaşlarla oynama</h3><ol id="steps"></ol>

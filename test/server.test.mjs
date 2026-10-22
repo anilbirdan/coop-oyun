@@ -19,7 +19,7 @@ async function appFor(t) {
 test('loopback app renders assets; all three games present and actions disabled on Windows', async t => {
   const app = await appFor(t);
   const page = await fetch(app.origin);
-  assert.equal(page.status, 200); assert.match(await page.text(), /Birlikte başka/);
+  assert.equal(page.status, 200); assert.match(await page.text(), /Önce Steam’i açalım/);
   assert.match(page.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   const response = await fetch(app.origin + '/api/state', { headers: { Authorization: `Bearer ${app.token}` } });
   const state = await response.json();
@@ -30,6 +30,7 @@ test('loopback app renders assets; all three games present and actions disabled 
 test('private API rejects missing token and foreign web origin', async t => {
   const app = await appFor(t);
   assert.equal((await fetch(app.origin + '/api/state')).status, 403);
+  assert.equal((await fetch(app.origin + '/api/support')).status, 403);
   assert.equal((await fetch(app.origin + '/api/test', { method: 'POST', headers: { Authorization: `Bearer ${app.token}`, Origin: 'https://foreign.example' }, body: '{}' })).status, 403);
   assert.equal((await fetch(app.origin + '/PLAN.md')).status, 404);
   assert.equal((await fetch(app.origin + '/src/server.mjs')).status, 404);
@@ -44,6 +45,10 @@ test('test report roundtrip persists separated outcomes and exports no access to
   const data = await exported.json();
   assert.equal(data.games.find(game => game.id === 'palworld').tests[0].notes, result.notes);
   assert.equal(JSON.stringify(data).includes(app.token), false);
+  const support = await (await fetch(app.origin + '/api/support', {headers})).json();
+  assert.equal(support.games.length, 3);
+  assert.equal(JSON.stringify(support).includes(app.token), false);
+  assert.equal('dataDir' in support, false);
 });
 
 test('real CLI uses isolated data folder and exits through authenticated quit API',async t=>{

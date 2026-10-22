@@ -11,7 +11,7 @@ jobs:
     # Standard public-repository runner only: do not incur private-runner charges.
     if: github.event.repository.private == false
     runs-on: macos-15
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -23,11 +23,21 @@ jobs:
           sw_vers -productVersion
           /usr/bin/arch -x86_64 /usr/bin/true
       - name: Yazilim kontrolleri
-        run: node --test
+        run: npm test
       - name: Gercek goruntu denetimi derleyicisi
         run: HOMEBREW_NO_AUTO_UPDATE=1 brew install mingw-w64
       - name: Gercek Wine kurulumu ve paket testi
         run: node scripts/cloud-mac-smoke.mjs
+      - name: Steam ekran goruntusu
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: steam-ui
+          path: |
+            .local/steam-ui.png
+            .local/cloud-mac-report.json
+          retention-days: 3
+          if-no-files-found: error
       - name: Sonucu ozetle
         if: always()
         run: |

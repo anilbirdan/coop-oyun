@@ -1,3 +1,4 @@
+import { steamDiagnostics } from './steam-diagnostics.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -9,6 +10,7 @@ import { Readable } from 'node:stream';
 import { games, gameById } from './catalog.mjs';
 import { exists, hashFile, inside, readJSON, writeJSON } from './storage.mjs';
 import { supportsDXMT } from './macho.mjs';
+import { steamClientArgs, steamBootstrapArgs, steamDllOverrides, defaultWrapperPath, webHelperDirectories, installWebHelperWrapper, purgeChromiumLocks } from './steam.mjs';
 const appVersion = JSON.parse(await fs.readFile(new URL('../package.json',import.meta.url),'utf8')).version;
 
 export function runProcess(binary, args, { env = process.env, log, timeout = 120000, background = false, outputFile, maxOutput = 32000, requireFullOutput = false } = {}) {
@@ -92,11 +94,15 @@ export async function findDXMT(root) {
 }
 
 export class Engine {
-  constructor({ dataDir, platform = process.platform, runner = runProcess, downloader = downloadSteam } = {}) {
+  constructor({ dataDir, platform = process.platform, runner = runProcess, downloader = downloadSteam, wrapperPath = defaultWrapperPath, probe = processRunning, sleep = wait, bootstrapTimeout = 20 * 60000 } = {}) {
     this.dataDir = path.resolve(dataDir);
     this.platform = platform;
     this.runner = runner;
     this.downloader = downloader;
+    this.wrapperPath = wrapperPath;
+    this.probe = probe;
+    this.sleep = sleep;
+    this.bootstrapTimeout = bootstrapTimeout;
   }
   requireMac() {
     if (this.platform !== 'darwin') throw new Error('Bu bilgisayar Mac değil. Burada yalnızca arayüz ve kayıtlar kullanılabilir.');
@@ -122,6 +128,13 @@ export class Engine {
     if (this.lock) { await this.lock.close(); this.lock = null; await fs.rm(this.lockPath, { force: true }); }
   }
   prefix(id) { gameById(id); return inside(this.dataDir, 'games', id); }
+  async supportReport() {
+    const state = await this.status();
+    return { version: state.version, platform: state.platform, arch: state.arch,
+      games: await Promise.all(state.games.map(async game => ({ id: game.id, name: game.name,
+        prepared: game.prepared, steamInstalled: game.steamInstalled,
+        runtimeLog: game.runtimeLog, steam: await steamDiagnostics(this.prefix(game.id)) }))) };
+  }
   async status() {
     const config = await readJSON(inside(this.dataDir, 'settings.json'), {});
     const engine = config.engineId ? await readJSON(inside(this.dataDir, 'engines', config.engineId, 'engine.json'), null) : null;
@@ -206,6 +219,51 @@ export class Engine {
   environment(id, engine) {
     return {...process.env,...this.libraryEnvironment(engine),WINEPREFIX:this.prefix(id),WINEDEBUG:'-all',WINEDLLOVERRIDES:engine?.record.graphicsMode==='builtin'?'dxgi,d3d11=b':'dxgi,d3d11=n,b',WINEARCH:'win64'};
   }
+  // Steam and the games it starts inherit this: base DXMT overrides plus the
+  // Steam-on-Wine fixes in steam.mjs.
+  steamEnvironment(id, engine) {
+    const env = this.environment(id, engine);
+    return { ...env, WINEDLLOVERRIDES: env.WINEDLLOVERRIDES + ';' + steamDllOverrides };
+  }
+  // First Steam start downloads the real client (~300 MB). The webhelper
+  // wrapper can only be installed after that, so run the bootstrap once,
+  // stop this prefix and then install the wrapper. Later calls only heal it
+  // (Steam updates restore Valve's helper).
+  async ensureSteamClient(id, engine, log) {
+    const steam = await this.steamPath(id);
+    const root = path.dirname(steam);
+    const env = this.steamEnvironment(id, engine);
+    if (!(await webHelperDirectories(root)).length) {
+      log('Steam ilk kez güncelleniyor; Valve’dan yaklaşık 300 MB inebilir. Açılan Steam penceresini kapatmayın, iş bitince otomatik kapanır.\n');
+      await fs.mkdir(inside(this.dataDir,'logs'),{recursive:true});
+      const logName = randomUUID() + '.log';
+      await this.runner(engine.binary,[steam,...steamBootstrapArgs],{env,background:true,outputFile:inside(this.dataDir,'logs',logName)});
+      await writeJSON(path.join(this.prefix(id),'last-run.json'),{at:new Date().toISOString(),log:logName,action:'bootstrap'});
+      const deadline = Date.now() + this.bootstrapTimeout;
+      let seenAt = null;
+      let ready = false;
+      while (Date.now() < deadline) {
+        await this.sleep(3000);
+        if (!(await webHelperDirectories(root)).length) continue;
+        seenAt ??= Date.now();
+        // The bootstrapper starts steamwebhelper only after extracting the client.
+        if (await this.probe('steamwebhelper') || Date.now() - seenAt > 180000) { ready = true; break; }
+      }
+      if (!ready) {
+        await this.stopServer(engine,env).catch(()=>{});
+        throw new Error('Steam ilk güncellemesi zamanında bitmedi. İnternet bağlantısını kontrol edip “Steam’i kur” adımını yeniden deneyin.');
+      }
+      await this.sleep(10000);
+      await this.stopServer(engine,env,log);
+      await purgeChromiumLocks(this.prefix(id));
+      log('Steam istemcisi indirildi.\n');
+    }
+    if (!await exists(this.wrapperPath)) {
+      log('UYARI: Steam arayüz sarmalayıcısı bu kopyada yok (wrapper/steamwebhelper.exe). Steam penceresi siyah kalabilir. Kaynak koddan çalıştırıyorsanız: node scripts/build-webhelper-wrapper.mjs\n');
+      return 0;
+    }
+    return installWebHelperWrapper(root,this.wrapperPath,log);
+  }
   libraryEnvironment(engine){return engine?{DYLD_LIBRARY_PATH:path.join(engine.root,'lib')+':'+path.join(engine.root,'lib/wine/x86_64-unix')}:{};}
   async prepare(id, log) {
     this.requireMac(); gameById(id);
@@ -246,7 +304,7 @@ export class Engine {
   async installSteam(id, log) {
     this.requireMac();
     await this.prepare(id, log);
-    if (await this.steamPath(id)) { log('Steam zaten kurulu.\n'); return; }
+    if (await this.steamPath(id)) { log('Steam zaten kurulu.\n'); await this.ensureSteamClient(id, await this.engineFor(id), log); return; }
     const downloads = inside(this.dataDir, 'downloads');
     await fs.mkdir(downloads, { recursive: true });
     const installer = path.join(downloads, 'SteamSetup.exe');
@@ -257,6 +315,7 @@ export class Engine {
     await this.runner(engine.binary, [installer, '/S'], { env:this.environment(id, engine), log, timeout:300000 });
     if (!await this.steamPath(id)) throw new Error('Steam kurulumu doğrulanamadı. Kayıtları kontrol edin.');
     log('Steam dosyaları bulundu. Çevrim içi giriş henüz doğrulanmadı.\n');
+    await this.ensureSteamClient(id, engine, log);
   }
   async launch(id, action, log) {
     this.requireMac(); const game = gameById(id);
@@ -265,12 +324,15 @@ export class Engine {
     const steam = await this.steamPath(id);
     if (!steam) throw new Error('Önce bu oyun için Steam’i kurun.');
     const engine = await this.engineFor(id);
-    const args = [steam];
+    const changed = await this.ensureSteamClient(id, engine, log);
+    if (changed) log('Steam önceden açıksa ve penceresi siyahsa: “Ortamı kapat”, sonra “Steam’i aç”.\n');
+    const args = [steam, ...steamClientArgs];
     if (action === 'install') args.push(`steam://install/${game.appId}`);
-    if (action === 'play') args.push('-applaunch', game.appId);
+    // Arguments after the app id reach the game (e.g. -dx11 for DXMT).
+    if (action === 'play') args.push('-applaunch', game.appId, ...(game.launchArgs || []));
     const logName = randomUUID() + '.log';
     await fs.mkdir(inside(this.dataDir,'logs'),{recursive:true});
-    await this.runner(engine.binary,args,{env:this.environment(id,engine),background:true,outputFile:inside(this.dataDir,'logs',logName)});
+    await this.runner(engine.binary,args,{env:this.steamEnvironment(id,engine),background:true,outputFile:inside(this.dataDir,'logs',logName)});
     await writeJSON(path.join(this.prefix(id),'last-run.json'),{at:new Date().toISOString(),log:logName,action});
     log('Steam’e başlatma isteği gönderildi. Oyunun açıldığını ve arkadaş bağlantısını oyun ekranından kontrol edin.\n');
   }
@@ -280,6 +342,8 @@ export class Engine {
     const engine = await this.engineFor(id);
     // WINEPREFIX scopes wineserver -k to this game, never all Wine installations.
     await this.stopServer(engine,this.environment(id,engine),log);
+    // The prefix is down now, so stale Chromium locks can go safely.
+    await purgeChromiumLocks(this.prefix(id)).catch(()=>{});
     log('Bu oyunun Steam ve oyun ortamına kapatma isteği gönderildi. Kaydedilmemiş ilerleme kaybolabilir.\n');
   }
   async stopServer(engine,env,log){
@@ -326,6 +390,12 @@ export class Engine {
     tests.push({ id: randomUUID(), at: new Date().toISOString(), source: 'user-reported', engineId: binding?.engineId ?? null, ...Object.fromEntries([...fields, 'launch', 'join', 'host', 'save'].map(key => [key, input[key]])) });
     await writeJSON(path.join(prefix, 'tests.json'), tests);
   }
+}
+
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function processRunning(pattern) {
+  try { await runProcess('/usr/bin/pgrep', ['-f', pattern], { timeout: 10000 }); return true; }
+  catch { return false; }
 }
 
 export async function downloadSteam(destination) {

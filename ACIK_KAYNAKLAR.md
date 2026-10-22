@@ -21,3 +21,7 @@ Paket adresleri, sürümleri, boyutları ve sabit SHA256 özetleri src/releases.
 Türkçe yerel arayüz, doğrulanmış motor indirme/kurulum yönetimi, oyun başına ayrı ortam, Steam komutları, hata/test kayıtları, Mac paketleme ve bulut test betikleri burada yazıldı. Bunlar Wine'ın yerini almaz; açık kaynak motorları yönetir.
 
 Gerçek bulut Mac'te Windows komutu, küçük bir Direct3D 11 görüntüsünün renk geri okuması ve sunulması, pencere boyutlandırma ve kapatıp yeniden açma geçti. Bu, Palworld/Bellwright/Raft açılışı, performansı veya arkadaş odası testi değildir. Güncel kanıt DOGRULAMA.md içindedir.
+
+## 0.3.2 Steam arayüz uyarlaması
+
+steam-mac-duzeltme dalının 2a8ca36 değişikliğindeki MIT lisanslı steamwebhelper yardımcı kaynağı kullanıldı. Valve özgün dosyası yedeklenir; yardımcı Mac derlemesinde kaynak koddan üretilir. Kaynak: https://github.com/anilbirdan/coop-oyun/tree/2a8ca36acf9e303c5f70684232a1a4e58cd52816/wrapper . Giriş ekranı, hesapla giriş ve oyun açılışı ayrı doğrulamalardır.

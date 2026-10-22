@@ -67,6 +67,10 @@ export async function createApp({ dataDir, engine, port = 0 } = {}) {
       if (!url.pathname.startsWith('/api/')) return json(res, 404, { error: 'Sayfa bulunamadı.' });
       if (req.headers.authorization !== `Bearer ${token}` || (req.headers.origin && req.headers.origin !== origin)) return json(res, 403, { error: 'Bu pencerenin erişim anahtarı geçersiz. Başlatma bağlantısını yeniden açın.' });
       if (req.method === 'GET' && url.pathname === '/api/state') return json(res, 200, { ...await engine.status(), busy, jobs });
+      if (req.method === 'GET' && url.pathname === '/api/support') return json(res, 200, {
+        ...await engine.supportReport(), exportedAt: new Date().toISOString(),
+        jobs: jobs.slice(-4).map(({label, state, log}) => ({label, state, log}))
+      });
       if (req.method === 'GET' && url.pathname === '/api/export') {
         res.setHeader('Content-Disposition', 'attachment; filename="coop-test-kayitlari.json"');
         const state = await engine.status();
